@@ -1,0 +1,193 @@
+<%- include('partials/header') %>
+<%
+// Pequeno helper local para formatar a data para o input type="date" (yyyy-mm-dd).
+function formatDateInput(d) {
+    if (!d) return '';
+    const dt = new Date(d);
+    const pad = (n) => String(n).padStart(2, '0');
+    return `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}`;
+}
+%>
+<div class="container mt-5">
+  <div class="row">
+    <div class="col-xl-2 col-lg-1">
+        <%- include('partials/sideMenu') %>
+    </div>
+    <div class="col-xl-1 col-lg-1"></div>
+    <div class="col-xl-8">
+        <h1><%= colab ? 'Editar Colaborador' : 'Dados do Colaborador' %></h1>
+        <form action="/enviarColab" method="POST">
+            <!-- Bloco 1: Identificação Básica -->
+            <div class="row mt-3">
+                <div class="col-md-6 mb-3">
+                    <div class="input-group">
+                        <span class="input-group-text" id="numeroAddon">Nº</span>
+                        <!-- CORREÇÃO: em modo edição o Nº fica readonly, porque é a
+                             chave usada para encontrar/atualizar o colaborador
+                             (o /enviarColab faz UPDATE por "numero"; mudá-lo aqui
+                             criaria um colaborador novo em vez de atualizar o atual). -->
+                        <input type="number" class="form-control" id="tbNumero" name="tbNumero"
+                            aria-label="tbNumero" aria-describedby="numeroAddon"
+                            value="<%= colab ? colab.numero : '' %>"
+                            <% if (colab) { %> readonly <% } %>
+                            required>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <div class="input-group">
+                        <span class="input-group-text" id="nomeAddon">Nome</span>
+                        <input type="text" class="form-control" id="tbNome" name="tbNome"
+                            aria-label="tbNome" aria-describedby="nomeAddon"
+                            value="<%= colab ? colab.nome : '' %>"
+                            required>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bloco 2: Contacto e Admissão -->
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <div class="input-group">
+                        <span class="input-group-text" id="dataAdmissaoAddon">Data de Admissão</span>
+                        <input type="date" class="form-control" id="tbDataAdmissao" name="tbDataAdmissao"
+                            aria-label="tbDataAdmissao" aria-describedby="dataAdmissaoAddon"
+                            value="<%= colab ? formatDateInput(colab.dataAdmissao) : '' %>"
+                            required>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <div class="input-group">
+                        <span class="input-group-text" id="emailAddon">Email institucional</span>
+                        <input type="email" class="form-control" id="tbEmail" name="tbEmail"
+                            aria-label="tbEmail" aria-describedby="emailAddon"
+                            value="<%= colab ? colab.email : '@uatlantica.pt' %>"
+                            required>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bloco 3: Organização Interna -->
+            <div class="row">
+
+                <div class="col-md-6 mb-3">
+                    <label for="cbDepartamento" class="form-label">Áreas Funcionais</label>
+                    <select class="form-select" id="cbDepartamento" name="cbDepartamento" aria-label="Selecionar Departamento">
+                        <option value="">-- Selecione --</option>
+                        <% areasFunc.forEach(a => { %>
+                            <option value="<%= a.idtbOpcaoAreasFunc %>"
+                                <%= (colab && colab.idAreaFunc == a.idtbOpcaoAreasFunc) ? 'selected' : '' %>>
+                                <%= a.sigla %> — <%= a.nome %>
+                            </option>
+                        <% }) %>
+                    </select>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label for="cbCatProfissional" class="form-label">Categoria Profissional</label>
+                    <select class="form-select" id="cbCatProfissional" name="cbCatProfissional" aria-label="Selecionar Categoria Profissional">
+                        <option value="">-- Selecione --</option>
+                        <% catColab.forEach(r => { %>
+                            <option value="<%= r.idtrOpcaoCatColab %>"
+                                <%= (colab && colab.idCatColab == r.idtrOpcaoCatColab) ? 'selected' : '' %>>
+                                <%= r.nome %>
+                            </option>
+                        <% }) %>
+                    </select>
+                </div>
+
+            </div>
+
+            <!-- Bloco 5: Contrato e Carga Horária -->
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label for="cbCargo" class="form-label">Função</label>
+                    <select class="form-select" id="cbCargo" name="cbCargo" aria-label="Selecionar Tipo de Função">
+                        <option value="">-- Selecione --</option>
+                        <% funcoes.forEach(r => { %>
+                            <option value="<%= r.idtbOpcaoFuncaoColab %>"
+                                <%= (colab && colab.idFuncao == r.idtbOpcaoFuncaoColab) ? 'selected' : '' %>>
+                                <%= r.nome %>
+                            </option>
+                        <% }) %>
+                    </select>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="cbTipoContrato" class="form-label">Tipo de Contrato</label>
+                    <select class="form-select" id="cbTipoContrato" name="cbTipoContrato" aria-label="Selecionar Tipo de Contrato">
+                        <option value="">-- Selecione --</option>
+                        <% regimes.forEach(r => { %>
+                            <option value="<%= r.idtbOpcaoRegimeColab %>"
+                                <%= (colab && colab.idRegime == r.idtbOpcaoRegimeColab) ? 'selected' : '' %>>
+                                <%= r.nome %>
+                            </option>
+                        <% }) %>
+                    </select>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="tbCargaHoraria" class="form-label">Carga Horária Semanal</label>
+                    <div class="input-group">
+                        <input type="number" class="form-control" id="tbCargaHoraria" name="tbCargaHoraria"
+                            aria-label="tbCargaHoraria" aria-describedby="cargaHorariaAddon"
+                            value="<%= colab ? colab.cargaHoraria : '' %>"
+                            min="1" max="60">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bloco 6: Níveis QNQ -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <label for="cbQNQ" class="form-label">Níveis de Qualificação (QNQ)</label>
+                    <select class="form-select" id="cbQNQ" name="cbQNQ" aria-label="Selecionar Nível QNQ">
+                        <option value="">-- Selecione --</option>
+                        <% niveisQNQ.forEach(n => { %>
+                            <option value="<%= n.idtbOpcaoNiveisQNQ %>"
+                                <%= (colab && colab.idNivelQNQ == n.idtbOpcaoNiveisQNQ) ? 'selected' : '' %>>
+                                Nível <%= n.nivel %> — <%= n.nome %>
+                            </option>
+                        <% }) %>
+                    </select>
+                </div>
+            </div>
+            <div class="row mb-4">
+                <div class="col-md-6 mb-3">
+                    <label for="tbAreaForma" class="form-label">Área de Formação</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="tbAreaForma" name="tbAreaForma"
+                            aria-label="tbAreaForma" aria-describedby="areaFormaAddon"
+                            value="<%= colab ? colab.areaFormacao : '' %>">
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="tbOutForma" class="form-label">Outras Formações</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="tbOutForma" name="tbOutForma"
+                            aria-label="tbOutForma" aria-describedby="outFormaAddon"
+                            value="<%= colab ? colab.outrasFormacoes : '' %>">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botão de Submissão -->
+            <div class="row">
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary px-4">Submeter</button>
+                </div>
+            </div>
+        </form>
+
+        <!-- Eliminar colaborador (só em modo edição) -->
+        <% if (colab) { %>
+            <form action="/fichaColab/<%= colab.numero %>/delete" method="POST"
+                onsubmit="return confirm('Tens a certeza que queres apagar este colaborador?');"
+                class="mt-2">
+                <!--<button type="submit" class="btn btn-outline-danger px-4">Eliminar Colaborador</button>-->
+            </form>
+        <% } %>
+
+    </div>
+
+  </div>
+</div>
+
+<%- include('partials/footer') %>

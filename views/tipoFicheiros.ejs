@@ -1,0 +1,134 @@
+<%- include('partials/header') %>
+<style>
+	.card:hover{
+		box-shadow: inset 0 0 1em grey, 0 0 1em black;
+	}
+</style>
+
+
+<div class="modal fade" id="NovoTipoModal" tabindex="-1" aria-labelledby="NovoTipoModalLabel" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+		  		<h1 class="modal-title fs-5" id="NovoTipoModalLabel">Novo Tipo</h1>
+		  		<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+		  		<form>
+					<div class="mb-3">
+			  			<label for="tipoFicheiroNovo" class="col-form-label">Tipo:</label>
+			  			<input type="text" class="form-control" id="tipoFicheiroNovo" name="tipoFicheiroNovo">
+					</div>
+		  		</form>
+			</div>
+			<div class="modal-footer">
+		  		<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+		  		<button type="button" class="btn btn-primary">Criar</button>
+			</div>
+	  	</div>
+	</div>
+</div>
+
+<div class="modal fade" id="EditaTipoModal" tabindex="-1" aria-labelledby="EditaTipoModalLabel" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+		  		<h1 class="modal-title fs-5" id="EditaTipoModalLabel">Editar Tipo</h1>
+		  		<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+		  		<form>
+					<input type="hidden" id="IdTipo" name="IdTipo" value="">
+					<div class="mb-3">
+			  			<label for="tipoFicheiroEdita" class="col-form-label">Tipo:</label>
+			  			<input type="text" class="form-control" id="tipoFicheiroEdita" name="tipoFicheiroEdita">
+					</div>
+		  		</form>
+			</div>
+			<div class="modal-footer">
+		  		<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+		  		<button type="button" class="btn btn-primary">Editar</button>
+			</div>
+	  	</div>
+	</div>
+</div>
+
+
+<div class="container-fluid mt-5">
+	<div class="row">
+		<div class="col-2">
+			<%- include('partials/sideMenu') %>
+		</div>
+		<div class="col-8">
+			<div class="container border ">
+				<div class="row m-5">
+					<div class="row mb-3">
+			
+						<h1>Editar Tipos de Ficheiros</h1>  
+					</div>
+
+					<table class="table table-hover">
+						<thead>
+							<th scope="col">Tipo de FIcheiro</th>
+							<th scope="col">Ações</th>
+						</thead>
+						<tbody>
+							<% tipos.forEach((tipo) => {%>
+								<tr>
+									<td><%= tipo.tipo_nome %></td>
+									<td>
+										<button type="button" class="btn btn-small btn-outline-primary mx-2" data-bs-toggle="modal" data-bs-target="#EditaTipoModal" data-bs-id="<%= tipo.idtipos %>"	data-bs-tipo="<%= tipo.tipo_nome %>"><i class="fa-solid fa-pen"></i></button>
+										<a href="#" class="btn btn-small btn-outline-primary mx-2"><i class="fa-solid fa-trash-can"></i></a>
+									</td>
+								</tr>
+							<%})%>
+						</tbody>
+					</table>
+					<div class="row">
+						<div class="col-2">
+							<button type="button" class="btn btn-small btn-outline-primary" data-bs-toggle="modal" data-bs-target="#NovoTipoModal"><i class="fa-solid fa-plus"></i></button>
+						</div>
+					</div>
+					
+					<form action="upload" method="post">
+						<div class="row mb-3">
+			
+									
+					</form>
+			
+				</div>
+				
+			</div>
+		</div>
+		<div class="col-2"></div>
+	</div>	
+</div>
+
+
+
+<script>
+	
+	const exampleModal = document.getElementById('EditaTipoModal') 
+	if (exampleModal) { 
+		exampleModal.addEventListener('show.bs.modal', event => { 
+			// Button that triggered the modal 
+			const button = event.relatedTarget 
+			// Extract info from data-bs-* attributes 
+			const recipient = button.getAttribute('data-bs-tipo')
+			const id = button.getAttribute('data-bs-id') 
+			// If necessary, you could initiate an Ajax request here 
+			// and then do the updating in a callback. 
+			
+			// Update the modal's content.  
+			const modalBodyTipo = document.getElementById('tipoFicheiroEdita') 
+			const modalBodyID = document.getElementById('IdTipo') 
+
+			modalBodyTipo.value = recipient
+			modalBodyID.value = id 
+		}) 
+	} 
+</script>
+
+
+
+<%- include('partials/footer') %>

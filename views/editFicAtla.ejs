@@ -1,0 +1,222 @@
+<%- include('partials/header') %>
+
+<style>
+	.card:hover{
+		box-shadow: inset 0 0 1em grey, 0 0 1em black;
+	}
+	.editFile{
+		cursor: pointer;
+	}
+</style>
+
+<script>
+	$('body').on('click', '.editFile',(e) =>{
+		const myModal = new bootstrap.Modal(document.getElementById('pnlFiles'), {
+			keyboard:false
+		})
+		let id =  $(e.target)[0].innerHTML;
+		$.ajax({
+			type: 'GET',
+			url: 'https://qualidadebo.uatlantica.pt/getFicheirosById/' + id,
+			dataType: 'json'
+
+		})
+		.done(function(data) {
+			console.log(data[0]);
+			//Chamar função para preencher o modal
+			$('#tbIdFile').val(data[0].Id)
+			$('#tbCodigo').val(data[0].cod)
+			$('#tbNomeFic').val(data[0].path.split('/')[1])
+			$('#tbNomeSite').val(data[0].nome)
+			$('#tbDepart').find('option[value="'+data[0].departamento.trim()+'"]').attr("selected",true);
+
+			myModal.show();
+		})
+		.fail(function(jqXHR, textStatus, err){
+			console.log('AJAX error response: ', err);
+			alert(err);
+		})
+
+
+		
+	})
+</script>
+
+
+<div class="modal" tabindex="-1" id="pnlFiles">
+	<div class="modal-dialog modal-lg modal-dialog-centered">
+		<div class="modal-content">
+			<form action="editFile" method="post">
+				<div class="modal-header">
+					<h5 class="modal-title">Editar Ficheiro</h5>
+					<input type="hidden" id="tbIdFile" name="tbIdFile">
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+				<div class="modal-body">
+					<div class="row">
+						<div class="col-xl-4 col-md-12">
+							<div class="form-floating">
+								<input type="text" class="form-control form-control-sm" id="tbCodigo" name="tbCodigo" placeholder="Codigo Ficheiro" value="">
+								<label for="tbCodigo">Código:</label>
+							</div>
+						</div>
+						<div class="col-xl-8 col-md-12">
+							<div class="form-floating">
+								<input type="text" class="form-control form-control-sm" id="tbNomeFic" name="tbNomeFic" placeholder="Nome Ficheiro" value="">
+								<label for="tbNomeFic">Nome do Ficheiro:</label>
+							</div>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-xl-8 col-md-12">
+							<div class="form-floating">
+								<input type="text" class="form-control form-control-sm" id="tbNomeSite" name="tbNomeSite" placeholder="Nome no Site" value="">
+								<label for="tbNomeSite">Nome no Site:</label>
+							</div>
+						</div>
+						<div class="col-xl-4 col-md-12">
+							<!--<input type="text" class="form-control form-control-sm" id="tbDepart" name="tbDepart" placeholder="Departamento do Ficheiro" value="">-->
+							<label for="tbDepart">Departamento:</label>
+							<select class="form-select" aria-label="Select File Department" id="tbDepart" name="tbDepart">
+								<option selected>----------------------</option>
+								<% depart.forEach((dep) => {%>
+									<option value="<%= dep.depart_nome %>"><%= dep.depart_nome %></option>
+								<% })%>
+							</select>
+						</div>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+					<button type="submit" class="btn btn-primary">Gravar</button>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
+
+
+<div class="container-fluid mt-5">
+	<div class="row">
+		<div class="col-xl-2 col-lg-1">
+			<%- include('partials/sideMenu') %>
+		</div>
+		<div class="col-xl-8">
+			<div class="container border">
+				<div class="row m-5">
+					<form action="editFicAtla" method="post">
+						<div class="row mb-3">
+							<input type="hidden" name="atlan" id="atlan" value="1">
+							<input type="hidden" name="essatla" id="essatla" value="0">
+							<h1>Editar Ficheiros Atlântica</h1>
+						</div>
+						<div class="row mb-3">
+							<div class="col-xl-6 col-md-12">
+								<label for="fileType" class="form-label">Escolha o tipo de ficheiro</label>
+								<select class="form-select" aria-label="Select file type" id="fileType" name="fileType" onchange="departChanged(this)">
+									<option selected>-------------------</option>
+									<% tipos.forEach((tipo) => {%>
+										<option value="<%= tipo.tipo_nome %>"><%= tipo.tipo_nome %></option>
+									<% }) %>
+								</select>
+							</div>
+							<div id="cursoSelect" class="col-xl-6 col-md-12" style="display: none;" >
+								<label for="formCurso" class="form-label">Selecione o curso</label>
+								<select class="form-select" aria-label="Select Curso" id="formCurso" name="formCurso" onchange="cursoChanged(this)">
+									<option selected>----------------------</option>
+									<% curso.forEach((ce) => { %>
+										<option value="<%= ce.sigla %>"><%= ce.sigla %></option>
+									<% }) %>
+								</select>
+							</div>
+							<script>
+								$("#fileType").on("change", function() {
+									if ($(this).val() == 'Planos de Estudo') {
+										$("#cursoSelect").show();
+									} else {
+										$("#cursoSelect").hide();
+									}
+								});
+							</script>		
+						</div>
+						<div class="row mb-3">
+							<div class="col-12">
+								<table class="table table-hover" id="tblFiles" name="tblFiles">
+									<thead>
+										<tr>
+											<th><i class="fa-solid fa-pen"></i></th>
+											<th>Código</th>
+											<th>Nome Site</th>
+											<th>Departamento</th>
+											
+										</tr>
+									</thead>
+								</table>
+							</div>
+						</div>
+						<script>
+							function departChanged(val){
+
+								let tipo = $('#fileType option:selected').text();
+								console.log('Tipo -> ', tipo)
+
+								$.ajax({
+									type: 'GET',
+									url: 'https://qualidadebo.uatlantica.pt/getFicheirosByTypeAtla/' + tipo,
+									dataType: 'json'
+
+								})
+								.done(function(data) {
+									console.log(data[0]);
+									clearTableBody();
+									for(var i=0; i<data.length; i++){
+										setTable(data[i])
+									};
+									
+								})
+								.fail(function(jqXHR, textStatus, err){
+                					console.log('AJAX error response: ', err);
+            					})
+								
+							}
+							function clearTableBody(){
+								$('#tblFiles').find("tr:gt(0)").remove();
+							}
+							function setTable(row){
+								let tr = "<tr><td><a class='editFile'>"+row.Id+"</a></td><td>"+row.cod+"</td><td>"+row.nome+"</td><td>"+row.departamento+"</td>";
+								if(row.emVigor == 1) tr = tr + "<td><a href='/disable/" + row.Id +"'><i class='fa-solid fa-eye'></i></a></td><td></td></tr>";
+								else tr = tr + "<td></td><td><a href='/enable/" + row.Id +"'><i class='fa-solid fa-eye-slash'></i></a></td></tr>";
+								$('#tblFiles').append(tr);
+							}
+
+							function cursoChanged(val){
+								let tipo = $('#formCurso option:selected').text();
+								console.log('Tipo -> ', tipo)
+
+								$.ajax({
+									type: 'GET',
+									url: 'https://qualidadebo.uatlantica.pt/getFicheirosByTypeAtla/' + tipo,
+									dataType: 'json'
+
+								})
+								.done(function(data) {
+									console.log(data[0]);
+									clearTableBody();
+									for(var i=0; i<data.length; i++){
+										setTable(data[i])
+									};
+									
+								})
+								.fail(function(jqXHR, textStatus, err){
+                					console.log('AJAX error response: ', err);
+            					})
+							}
+						</script>
+					</form>
+				</div>	
+			</div>
+		</div>
+	</div>
+</div>
+
+<%- include('partials/footer') %>

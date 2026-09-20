@@ -1,0 +1,125 @@
+<script>
+    $(document).ready(function () {
+        $(document).on('click', '.addFormPedag', function () {
+            const modal = new bootstrap.Modal(document.getElementById('formaPedagDocente'));
+            clearModal();
+            $("#modalPedagTitle").text("Adicionar Formação");
+            $('#idDocPedag').val($("#idDoc").val());
+            $('#idFormaPedagDoc').val(0);
+            
+            modal.show();
+        });
+        $(document).on('click', '.editFormacaoPedag', function () {
+            const modal = new bootstrap.Modal(document.getElementById('formaPedagDocente'));
+            $("#modalPedagTitle").text("Editar Formação");
+            getFormacaoPedag($(this).data('id'));
+            modal.show();
+        });
+        $(document).on('click', '.delFormaPedag', function () {
+            let confirmar = confirm('Deseja apagar esta formação?');
+
+            if (!confirmar) return;
+            
+            delFormacaoPedag($(this));
+        });
+
+        function getFormacaoPedag(id){
+            $.ajax({
+                type: 'GET',
+                url:'https://qualidadebo.uatlantica.pt/getFormaPedagDoc/' + id,
+                dataType: 'json'
+            })
+            .done((data)=>{
+                //clearModal();
+                $('#idFormaPedagDoc').val(id);
+                $('#idDocPedag').val(data[0].idFichaDoc);
+                $('#tbFormPedag').val(data[0].descricao);
+                
+            })
+            .fail((jqXHR, textStatus, err) => {
+                console.log('AJAX error response: ', err);
+            })
+        }
+
+        function delFormacaoPedag(btn){
+            let id = btn.data('id');
+            $.ajax({
+                type: 'GET',
+                url:'https://qualidadebo.uatlantica.pt/delFormaPedagDoc/' + id,
+                dataType: 'json'
+            })
+            .done((data)=>{
+                window.location.reload();
+            })
+            .fail((jqXHR, textStatus, err) => {
+                console.log('AJAX error response: ', err);
+            })
+        }
+
+        function clearModal(){
+            $('#tbFormPedag').val("");
+        }
+    })
+</script>
+<!-- Begin Modal-->
+<div class="modal fade" id="formaPedagDocente" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form method="post" action="/setFormacaoPedag">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalPedagTitle"></h5>
+                    <input type="hidden" id="idDocPedag" name="idDocPedag" value="">
+                    <input type="hidden" id="idFormaPedagDoc" name="idFormaPedagDoc" value="">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    
+                </div>
+                <div class="modal-body">
+                    <div class="row mt">
+                        <div class="input-group mb-3">
+                            <span class="input-group-text" id="formPedagAddon">Formação</span>
+                            <input type="text" class="form-control" id="tbFormPedag" name="tbFormPedag" aria-label="tbAnoTitulo" aria-describedby="formPedagAddon" required oninvalid="this.setCustomValidity('Campo obrigatório')" > 
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Sair</button>
+                    <button type="submit" class="btn btn-primary">Gravar</button>
+                </div>
+            </form>
+            
+        </div>
+    </div>
+</div>
+<!-- End Modal-->
+
+<div class="row mt-5">
+    <div class="col-md-12">
+        <p class="h5 text-red">Formação pedagógica</p>
+        <p class="h3 text-red"><%= ficha[0].nomeDoc  %></p>
+    </div>
+    <div class="col-md-12">
+        <p class="h2 text-red">
+            <div class="row mt-5">
+                <a class="btn btn-sm btn-primary addFormPedag">Adicionar Formação</a>
+            </div>
+            <div class="row mt-5">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Descrição</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% pedag.forEach(function(f) { %>
+                            <tr>
+                                <td><%= f.descricao %></td>
+                                <td><a id="idFormaPedagDoc" name="idFormaPedagDoc" class="editFormacaoPedag" data-id="<%= f.idfichaDocFormPedag %>"><i class="fa-solid fa-pen-to-square"></i></a> - <a name="delFormaPedag" class="delFormaPedag" data-id="<%= f.idfichaDocFormPedag %>"><i class="fa-solid fa-delete-left"></i></a></td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        </p>
+    </div>
+</div>

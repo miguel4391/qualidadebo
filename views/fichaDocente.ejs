@@ -1,0 +1,388 @@
+<%- include('partials/header') %>
+<script>
+    $(document).on('click', '.addDocente', function () {
+        const modal = new bootstrap.Modal(document.getElementById('docente'));
+        clearModal();
+        $("#modalTitle").text("Adicionar Docente");
+        $('#idFicha').val(0);
+        
+        modal.show();
+    });
+    $(document).on('click', '.editDocente', function () {
+        const modal = new bootstrap.Modal(document.getElementById('docente'));
+        $("#modalTitle").text("Editar Docente");
+        getDocente($(this).data('id'));
+        modal.show();
+    });
+
+    $(document).on('click', '.delDocente', function () {
+        let confirmar = confirm('Deseja apagar este docente?');
+
+        if (!confirmar) return;
+        
+        delDocente($(this).data('id'));
+    });
+
+    function atualizarAtivo(valor) {
+        $('#ativoSwitch').prop('checked', valor);
+        $('#ativoText').text(valor ? 'Sim' : 'Não');
+    }
+
+    function getDocente(id){
+        $.ajax({
+            type: 'GET',
+            url:'https://qualidadebo.uatlantica.pt/getFichaDoc/' + id,
+            dataType: 'json'
+        })
+        .done((data)=>{
+            clearModal();
+            $('#idFicha').val(id);
+            $('#tbNome').val(data[0].nomeDoc);
+            $('#tbEmail').val(data[0].emailDoc + "@uatlantica.pt");
+            $('#cbCatDocente').val(data[0].catDoc);
+            $('#cbGrauDocente').val(data[0].grauDoc);
+            $('#cbVinvulo').val(data[0].vinculoIes);
+            $('#tbNrMec').val(data[0].nrMec);
+            $('#anoVinculo').val(data[0].anoVinculo);
+            $('#cbTipo').val(data[0].tipoDoc);
+            $('#tbPercDedic').val(data[0].percIes);
+            setecTipo()
+            setTimeout(() =>{
+                $('#cbTipo2').val(data[0].tipoDoc2);
+                $('#nomeIES').val(data[0].nomeIesProtoc);
+                if(data[0].tipoDoc2 === "Protocolo IES"){
+                     selectOut();
+                }
+                atualizarAtivo(data[0].ativo);
+            },2000);
+            
+
+            $('.area-checkbox').prop('checked', false);
+            let areas = data[0].AreaGest;
+            if (typeof areas === 'string') {
+                areas = JSON.parse(areas);
+            }
+            areas.forEach(function(val) {
+                $('.area-checkbox[value="' + val + '"]').prop('checked', true);
+            });
+
+        })
+        .fail((jqXHR, textStatus, err) => {
+            console.log('AJAX error response: ', err);
+        })
+    }
+    function clearModal(){
+        $('#idFicha').val("");
+        $('#tbNome').val("");
+        $('#tbEmail').val("");
+        $('#cbCatDocente').prop('selectedIndex', 0);
+        $('#cbGrauDocente').prop('selectedIndex', 0);
+        $('#cbVinvulo').prop('selectedIndex', 0);
+        $('#anoVinculo').val("");
+        $('#tbNrMec').val("");
+        $('.area-checkbox').prop('checked', false);
+        $('tbPercDedic').val("");
+    }
+    function delDocente(id){
+        $.ajax({
+            type: 'GET',
+            url:'https://qualidadebo.uatlantica.pt/delFichaDoc/' + id,
+            dataType: 'json'
+        })
+        .done((data)=>{
+
+        })
+        .fail((jqXHR, textStatus, err) => {
+            console.log('AJAX error response: ', err);
+        })
+    }
+
+</script>
+<style>
+    .no-click {
+        pointer-events: none;
+        background-color: #e9ecef;
+    }
+</style>
+
+<!-- Begin Modal-->
+<div class="modal fade" id="docente" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form method="post" action="setFichaDoc">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTitle"></h5>
+                    <input type="hidden" id="idFicha" name="idFicha" value="">
+                    <input type="hidden" id="anoVinculo" name="anoVinculo" value="">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row mt">
+                        <div class="input-group mb-3">
+                            <span class="input-group-text" id="nomeAddon">Nome</span>
+                            <input type="text" class="form-control" id="tbNome" name="tbNome" aria-label="tbNome" aria-describedby="nomeAddon" value="" >
+                        </div>
+                        <div class="input-group mb-3">
+                            <span class="input-group-text" id="emailAddon">Email institucional</span>
+                            <input type="text" class="form-control" id="tbEmail" name="tbEmail" aria-label="tbEmail" aria-describedby="emailAddon" value="@uatlantica.pt" >
+                        </div>
+                    </div>
+                    <div class="row mt-5">
+                        <div class="col-12">
+                            <label for="cbCatDocente" class="form-label">Categoria</label>
+                            <select class="form-select" aria-label="Selecionar uma opção" id="cbCatDocente" name="cbCatDocente">
+                                <option selected>Selecionar uma opção</option>
+                                <% catDocente.forEach(function(cat){ %>
+                                    <option value="<%= cat.nomeCategoria %>" ><%= cat.nomeCategoria %></option>
+                                    
+                                <% }) %>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row mt-5">
+                        <div class="col-12">
+                            <label for="cbGrauDocente" class="form-label">Grau</label>
+                            <select class="form-select" aria-label="Selecionar uma opção" id="cbGrauDocente" name="cbGrauDocente">
+                                <option selected>Selecionar uma opção</option>
+                                <% grauDocente.forEach(function(grau){ %>
+                                    <option value="<%= grau.idtbOpcaoGrau %>" ><%= grau.nomeGrau %> - <%= grau.cicloGrau %></option>
+                                <% }) %>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row mt-5 d-flex align-items-end">
+                        <div class="col-md-4 col-sm-6 col-xs-12">
+                            <label for="cbVinvulo" class="form-label">Vínculo com a IES</label>
+                            <select class="form-select" aria-label="Selecionar uma opção" id="cbVinvulo" name="cbVinvulo">
+                                <option selected>Selecionar uma opção</option>
+                                <option value="A">ATLÂNTICA</option>
+                                <option value="E">ESSATLA</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 col-sm-6 col-xs-12">
+                            <label for="tbNrMec" class="form-label">Nº Mecanográfico</label>
+                            <input 
+                                type="text"
+                                class="form-control"
+                                id="tbNrMec"
+                                name="tbNrMec"
+                                maxlength="5"
+                                
+                                
+                                aria-label="tbNrMec"
+                                aria-describedby="tbNrMec"
+                            >
+
+                            <script>
+                                $('#tbNrMec').on('input', function () {
+
+                                    // remove tudo o que não for número
+                                    //this.value = this.value.replace(/\D/g, '');
+
+                                    // limita a 5 dígitos
+                                    this.value = this.value.slice(0, 5);
+                                });
+                            </script>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 col-sm-6 col-xs-12">
+                            <label for="cbTipoDOcente" class="form-label">Tipo Docente</label>
+                            <select class="form-select" aria-label="Selecionar uma opção" id="cbTipo" name="cbTipo" onchange="setecTipo()">
+                                <option selected>Selecionar uma opção</option>
+                                <% tipoDocente.forEach(function(tipo){ %>
+                                    <option value="<%= tipo.nomeOpcao %>"><%= tipo.nomeOpcao %></option>
+                                <% }) %>
+                            </select>
+                            <script>
+                                function setecTipo(){
+                                    let tipo = $('#cbTipo').val();
+                                    let tipoDoc = "docTipo"
+                                    if(tipo == 'Selecionar uma opção'){
+                                        $("#cbTipo2").empty();
+                                        $("#cbTipo2").append('<option selected>Selecionar uma opção</option>');
+                                    } else{
+                                        if(tipo =="Outro"){
+                                            tipoDoc = "out";
+                                        }
+                                        $.ajax({
+                                            type: 'GET',
+                                            url:'https://qualidadebo.uatlantica.pt/getTipoDoc/' + tipoDoc,
+                                            dataType: 'json'
+                                        })
+                                        .done((data)=>{
+                                            let listItems = '';
+                                            let selectedValue = '<%= docentes[0].tipoDoc2 %>';
+                                            $.each(data, (key, value) =>{
+                                                let selected = value["nomeOpcao"] == selectedValue ? 'selected' : '';
+                                                listItems += `<option value="${value["nomeOpcao"]}" ${selected}>${value["nomeOpcao"]}</option>`;
+                                            })
+                                            $("#cbTipo2").empty();
+                                            $("#cbTipo2").append('<option selected>Selecionar uma opção</option>');
+                                            $("#cbTipo2").append(listItems);
+                                        })
+                                        .fail((jqXHR, textStatus, err) => {
+                                            console.log('AJAX error response: ', err);
+                                        })
+                                    }                     
+                                }
+                            </script>
+                        </div>
+                        <div class="col-md-4 col-sm-6 col-xs-12">
+                            <label for="cbTipoDOcente" class="form-label"></label>
+                            <select class="form-select" aria-label="Selecionar uma opção" id="cbTipo2" name="cbTipo2" onchange="selectOut()">
+                                <option selected>Selecionar uma opção</option>
+                            </select>
+                            <script>
+                                function selectOut(){
+                                    if($("#cbTipo2").val() == 'Protocolo IES'){
+                                        
+                                        $('#plnIES').removeClass("invisible");
+                                    }else{
+                                        $('#nomeIES').val('');
+                                        $('#plnIES').addClass("invisible");
+                                    }
+                                }
+                            </script>
+                        </div>
+                    </div>
+                    <div class="row mt-5 invisible" id="plnIES">
+                        <div class="input-group mb-3">
+                            <span class="input-group-text" for="nomeIES">Nome da IES</span>
+                            <input type="text" class="form-control" id="nomeIES" name="nomeIES" aria-label="nomeIES" aria-describedby="nomeIES">
+                        </div>
+                    </div>
+                    <div class="row mt-5">
+                        <div class="input-group mb-3">
+                            <span class="input-group-text" id="perDedicAddon">Regime de dedicação na instituição (%)</span>
+                            <input type="text" class="form-control" inputmode="numeric" pattern="[0-9]+" id="tbPercDedic" name="tbPercDedic" aria-label="tbPercDedic" aria-describedby="perDedicAddon" value="">
+                        </div>
+                        <script>
+                            $('#tbPercDedic').on('input', function () {
+                                this.value = this.value.replace(/[^0-9]/g, '');
+                                let value = parseInt(this.value, 10);
+
+                                if (!isNaN(value)) {
+                                    if (value > 100) value = 100;
+                                    if (value < 0) value = 0;
+
+                                    this.value = value;
+                                }
+                            });
+                        </script>
+                    </div>
+                    <div class="row mt-5 p-3">
+                        <% orgGest.forEach((orgao) => { %>
+                            <div class="form-check">
+                                <input 
+                                    class="form-check-input area-checkbox" 
+                                    type="checkbox" 
+                                    value="<%= orgao.codOpcao %>"                                    
+                                    name="areas[]"
+                                >
+                                <label class="form-check-label"><%= orgao.opcao %></label>
+                            </div>
+                        <% }) %>
+                    </div>
+                    <div class="row mt-5 p-3">
+                        <label class="form-check-label">Ativo</label>
+                        <div class="form-check form-switch">
+                            <input 
+                                class="form-check-input" 
+                                type="checkbox" 
+                                id="ativoSwitch"
+                                name="ativo"
+                            >
+
+                            <label class="form-check-label" for="ativoSwitch">
+                                <span id="ativoText">Não</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Sair</button>
+                    <button type="submit" class="btn btn-primary">Gravar</button>
+                </div>
+            </form>
+            
+        </div>
+    </div>
+</div>
+<!-- End Modal-->
+
+<div class="container-fluid mt-5">
+    <div class="row">
+        <div class="col-xl-2 col-lg-1">
+			<%- include('partials/sideMenu') %>
+		</div>
+        <div class="col-xl-8">
+			<div class="container border ">
+				<div class="row m-5">
+                    <h1>Ficha Docente</h1>
+                </div>
+                <div class="row m-5">
+                    <div class="d-grid gap-2 mb-5">
+                        <input type="text" id="searchInput" placeholder="Procurar tabela..." class="form-control mb-3">
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button type="button" class="btn btn-primary btn-sm addDocente" id="addDocente" name="addDocente">Adicionar Docente</button>
+                    </div>
+                    
+                </div>
+                <div class="row mt-5 p-3">
+                    <table class="table table-hover " id="docTable">
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th>Nº</th>
+                                <th>Nome</th>
+                                <th>Email</th>
+                                <th>Ativo</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% docentes.forEach((docente) => { %>
+                                <tr>
+                                    <td>
+                                        <a id="idDoc" name="idDoc" class="editDocente" data-id="<%= docente.idfichaDoc %>"><i class="fa-solid fa-pen-to-square"></i></a> - 
+                                        <a href="visFichaDoc/<%= docente.idfichaDoc %>"><i class="fa-solid fa-glasses"></i></a>
+                                    </td>
+                                    <td><%= docente.nrMec %></d></td>
+                                    <td><%= docente.nomeDoc %></td> 
+                                    <td><%= docente.emailDoc %>@uatlantica.pt</td>
+                                    <td><input class="form-check-input no-click" type="checkbox" value="" id="flexCheckChecked" <% if (docente.ativo) { %> checked <% } %> ></td>
+                                    <td><a id="delDoc" name="delDoc" class="delDocente"data-id="<%= docente.idfichaDoc %>"><i class="fa-solid fa-delete-left"></i></a> </td>
+                                </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                    <script>
+                        document.getElementById('searchInput').addEventListener('keyup', function () {
+
+                            let filter = this.value.toLowerCase();
+
+                            let rows = document.querySelectorAll('#docTable tbody tr');
+
+                            rows.forEach(row => {
+
+                                let text = row.textContent.toLowerCase();
+
+                                if (text.includes(filter)) {
+                                    row.style.display = '';
+                                } else {
+                                    row.style.display = 'none';
+                                }
+
+                            });
+
+                        });
+                    </script>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- include('partials/footer') %>

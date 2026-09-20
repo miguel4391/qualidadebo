@@ -1,0 +1,183 @@
+<script>
+    $(document).ready(function () {
+        $(document).on('click', '.addInvest', function () {
+            const modal = new bootstrap.Modal(document.getElementById('formaInvestDocente'));
+            clearInvestModal();
+            $("#modalInvestTitle").text("Adicionar Afiliação");
+            $('#idDocInvest').val($("#idDoc").val());
+            $('#idAfiliacaoDoc').val(0);
+            
+            modal.show();
+        });
+        $(document).on('click', '.editInvestivacao', function () {
+            const modal = new bootstrap.Modal(document.getElementById('formaInvestDocente'));
+            $("#modalInvestTitle").text("Editar Afiliação");
+            getInvestigacao($(this).data('id'));
+            modal.show();
+        });
+
+        $(document).on('click', '.delInvestigacao', function () {
+            let confirmar = confirm('Deseja apagar esta formação?');
+
+            if (!confirmar) return;
+            
+            delInvestigacao($(this));
+        });
+
+        function delInvestigacao(btn){
+            let id = btn.data('id');
+            $.ajax({
+                type: 'GET',
+                url:'https://qualidadebo.uatlantica.pt/delInvestigDoc/' + id,
+                dataType: 'json'
+            })
+            .done((data)=>{
+                window.location.reload();
+            })
+            .fail((jqXHR, textStatus, err) => {
+                console.log('AJAX error response: ', err);
+            })
+        }
+
+        function getInvestigacao(id){
+            $.ajax({
+                type: 'GET',
+                url:'https://qualidadebo.uatlantica.pt/getInvestigacao/' + id,
+                dataType: 'json'
+            })
+            .done((data)=>{
+                //clearModal();
+                $('#idAfiliacaoDoc').val(id);
+                $('#idDocInvest').val(data[0].idDoc);
+                $('#tbUniInvest').val(data[0].unidade);
+                $('#tbIesInvest').val(data[0].ies);
+                $('#cbClassInvest').val(data[0].classFCT);
+                $('#cbIntegradoInvest').val(data[0].integrado);
+                $('#cbTipoInvest').val(data[0].tipoUni);
+
+                
+            })
+            .fail((jqXHR, textStatus, err) => {
+                console.log('AJAX error response: ', err);
+            })
+        }
+
+        function clearInvestModal(){
+            $('#tbUniInvest').val("");
+            $('#tbIesInvest').val("");
+            $('#cbClassInvest').prop('selectedIndex', 0);
+            $('#cbIntegradoInvest').prop('selectedIndex', 0);
+            $('#cbTipoInvest').prop('selectedIndex', 0);
+        }
+    })
+</script>
+
+<!-- Begin Modal-->
+<div class="modal fade" id="formaInvestDocente" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form method="post" action="/setInvestigacao">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalInvestTitle"></h5>
+                    <input type="hidden" id="idDocInvest" name="idDocInvest" value="">
+                    <input type="hidden" id="idAfiliacaoDoc" name="idAfiliacaoDoc" value="">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    
+                </div>
+                <div class="modal-body">
+                    <div class="row mt">
+                        <div class="col-12">
+                            <div class="input-group mb-3">
+                                <span class="input-group-text" id="UniInvestAddon">Unidade de Investigação</span>
+                                <input type="text" class="form-control" id="tbUniInvest" name="tbUniInvest" aria-label="tbUniInvest" aria-describedby="UniInvestAddon" required oninvalid="this.setCustomValidity('Campo obrigatório')" > 
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mt">
+                        <div class="col-12">
+                            <div class="input-group mb-3">
+                                <span class="input-group-text" id="IesInvestAddon">Entidade/ IES</span>
+                                <input type="text" class="form-control" id="tbIesInvest" name="tbIesInvest" aria-label="tbIesInvest" aria-describedby="IesInvestAddon" required oninvalid="this.setCustomValidity('Campo obrigatório')" >
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mt">
+                        <div class="col-md-4 col-xs-12">
+                            <label for="cbClassInvest" class="form-label">Classificação FCT</label>
+                            <select class="form-select" aria-label="Selecionar uma opção" id="cbClassInvest" name="cbClassInvest" required oninvalid="this.setCustomValidity('Campo obrigatório')" >
+                                <option value="">Selecionar uma opção</option>
+                                <option value="Excelente">Excelente</option>
+                                <option value="Muito bom">Muito bom</option>
+                                <option value="Bom">Bom</option>
+                                <option value="Suficiente">Suficiente</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 col-xs-12">
+                            <label for="cbIntegradoInvest" class="form-label">Investigador Integrado</label>
+                            <select class="form-select" aria-label="Selecionar uma opção" id="cbIntegradoInvest" name="cbIntegradoInvest" required oninvalid="this.setCustomValidity('Campo obrigatório')" >
+                                <option value="">Selecionar uma opção</option>
+                                <option value="0">Não</option>
+                                <option value="1">Sim</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 col-xs-12">
+                            <label for="cbTipoInvest" class="form-label">Tipo da unidade de Investigação</label>
+                            <select class="form-select" aria-label="Selecionar uma opção" id="cbTipoInvest" name="cbTipoInvest" required oninvalid="this.setCustomValidity('Campo obrigatório')" >
+                                <option value="">Selecionar uma opção</option>
+                                <option value="Institucional">Institucional</option>
+                                <option value="Polo">Polo</option>
+                                <option value="Outra">Outra</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Sair</button>
+                    <button type="submit" class="btn btn-primary">Gravar</button>
+                </div>
+            </form>
+            
+        </div>
+    </div>
+</div>
+<!-- End Modal-->
+
+<div class="row mt-5">
+    <div class="col-md-12">
+        <p class="h5 text-red">Afiliação a unidades de investigação</p>
+        <p class="h3 text-red"><%= ficha[0].nomeDoc  %></p>
+    </div>
+    <div class="col-md-12">
+        <p class="h2 text-red">
+            <div class="row mt-5">
+                <a class="btn btn-sm btn-primary addInvest">Adicionar Afiliação</a>
+            </div>
+            <div class="row mt-5">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Unidade de Investigação</th>
+                            <th>Classificação FCT</th>
+                            <th>Entidade/ IES</th>
+                            <th>Investigador Integrado</th>
+                            <th>Tipo da unidade de Investigação</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% invest.forEach(function(f) { %>
+                            <tr>
+                                <td><%= f.unidade %></td>
+                                <td><%= f.classFCT %></td>
+                                <td><%= f.ies %></td>
+                                <td><%= f.integrado == 0 ? "Não" : "Sim" %></td>
+                                <td><%= f.tipoUni %></td>
+                                <td><a id="idFormaPedagDoc" name="idInvestDoc" class="editInvestivacao" data-id="<%= f.idFicDocInvest %>"><i class="fa-solid fa-pen-to-square"></i></a> - <a name="delInvestigacao" class="delInvestigacao" data-id="<%= f.idFicDocInvest %>"><i class="fa-solid fa-delete-left"></i></a></td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        </p>
+    </div>
+</div>

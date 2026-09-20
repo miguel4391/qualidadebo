@@ -1,0 +1,299 @@
+<script>
+    $(document).ready(function () {
+        selectAreaTitulo();
+        notaEstrangTitulo();
+        //getFormacao($('#cbAreaTitulo').val());
+
+        $(document).on('click', '.addForm', function () {
+            const modal = new bootstrap.Modal(document.getElementById('formaDocente'));
+            clearModal();
+            $("#modalTitle").text("Adicionar Formação");
+            $('#idDocTitulo').val($("#idDoc").val());
+            $('#idFormaDoc').val(0);
+            
+            modal.show();
+        });
+        $(document).on('click', '.editFormacao', function () {
+            const modal = new bootstrap.Modal(document.getElementById('formaDocente'));
+            $("#modalTitle").text("Editar Formação");
+            getFormacao($(this).data('id'));
+            modal.show();
+        });
+
+        $(document).on('click', '.delFormacao', function () {
+            let confirmar = confirm('Deseja apagar esta formação?');
+
+            if (!confirmar) return;
+            
+            delFormacao($(this).data('id'));
+        });
+
+        function getFormacao(id){
+            $.ajax({
+                type: 'GET',
+                url:'https://qualidadebo.uatlantica.pt/getFormaDoc/' + id,
+                dataType: 'json'
+            })
+            .done((data)=>{
+                //clearModal();
+                $('#idFormaDoc').val(id);
+                $('#idDocTitulo').val(data[0].idFichaDoc);
+                $('#tbAnoTitulo').val(data[0].ano);
+                $('#tbnomeTitulo').val(data[0].nome);
+                $('#tbnomeTituloEng').val(data[0].nomeEng);
+                $('#cbAreaTitulo').val(data[0].area);
+                $('#cbAreaTitulo2').val(data[0].area2);
+                $('#tbIesTitulo').val(data[0].ies);
+                $('#tbIesTituloEng').val(data[0].iesEng);
+                $('#tbGrauTitulo').val(data[0].classif);
+                $('#tbGrauTituloEng').val(data[0].classifEng);
+                data[0].granEstrang == 1 ? $('#grauEstrangTitulo').prop('checked', true) : $('#grauEstrangTitulo').prop('checked', false);
+                $('input[name="optionsGrauTitulo"][value="' + data[0].nivel + '"]')
+                    .prop('checked', true);
+                $('#tbDataGrauEstrangTitulo').val(data[0].data);
+                $('#tbnotaEstrangTitulo').val(data[0].grauEquiv);
+                $('#tbIesEstrangTitulo').val(data[0].iesEquiv);
+                
+            })
+            .fail((jqXHR, textStatus, err) => {
+                console.log('AJAX error response: ', err);
+            })
+        }
+
+        function delFormacao(id){
+            $.ajax({
+                type: 'GET',
+                url:'https://qualidadebo.uatlantica.pt/delFormaDoc/' + id,
+                dataType: 'json'
+            })
+            .done((data)=>{
+                location.reload();
+            })
+            .fail((jqXHR, textStatus, err) => {
+                console.log('AJAX error response: ', err);
+            })
+        }
+
+        function clearModal(){
+            $('#idDocTitulo').val("");
+            $('#idFormaDoc').val("");
+            $('#tbAnoTitulo').val("");
+            $('#tbnomeTitulo').val("");
+            $('#tbnomeTituloEng').val("");
+            $('#cbAreaTitulo').prop('selectedIndex', 0);
+            $('#cbAreaTitulo2').prop('selectedIndex', 0);
+            $('#tbIesTitulo').val("");
+            $('#tbIesTituloEng').val("");
+            $('#tbGrauTitulo').val("");
+            $('#tbGrauTituloEng').val("");
+            $('#grauEstrangTitulo').prop('checked', false);
+            $('input[name="optionsGrauTitulo"]').prop('checked', false);
+            $('#tbDataGrauEstrangTitulo').val("");
+            $('#tbnotaEstrangTitulo').val("");
+            $('#tbIesEstrangTitulo').val("");
+        }
+    })
+    
+</script>
+
+<!-- Begin Modal-->
+<div class="modal fade" id="formaDocente" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form method="post" action="/setFormacao">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTitle"></h5>
+                    <input type="hidden" id="idDocTitulo" name="idDocTitulo" value="">
+                    <input type="hidden" id="idFormaDoc" name="idFormaDoc" value="">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    
+                </div>
+                <div class="modal-body">
+                    <div class="row mt">
+                        <div class="input-group mb-3">
+                            <span class="input-group-text" id="anoAddon">Ano</span>
+                            <input type="text" class="form-control" id="tbAnoTitulo" name="tbAnoTitulo" aria-label="tbAnoTitulo" aria-describedby="anoAddon" required oninvalid="this.setCustomValidity('Campo obrigatório')" > 
+                        </div>
+                        <script>
+                            $('#tbAnoTitulo').on('input', function () {
+                                this.value = this.value.replace(/[^0-9]/g, '');
+                            });
+                        </script>
+                        <div class="input-group mb-3">
+                            <span class="input-group-text" id="nomeAddon">Designação do grau ou título</span>
+                            <input type="text" class="form-control" id="tbnomeTitulo" name="tbnomeTitulo" aria-label="tbnomeTitulo" aria-describedby="nomeAddon" required oninvalid="this.setCustomValidity('Campo obrigatório')" >
+                        </div>
+                        <div class="input-group mb-3">
+                            <span class="input-group-text" id="nomeEngAddon">Designação do grau ou título (eng)</span>
+                            <input type="text" class="form-control" id="tbnomeTituloEng" name="tbnomeTituloEng" aria-label="tbnomeTituloEng" aria-describedby="nomeEngAddon" >
+                        </div>
+                    </div>
+                    <div class="row mt-5">
+                        <div class="col-12">
+                            <p><label for="cbAreaDocente" class="form-label">Área científica deste grau ou título académico</label></p>
+                            <p><label for="cbAreaDocente" class="form-label">Áreas de estudo (CITE)</label></p>
+                            <select class="form-select" aria-label="Selecionar uma opção" id="cbAreaTitulo" name="cbAreaTitulo"  onchange="selectAreaTitulo()" required oninvalid="this.setCustomValidity('Campo obrigatório')" >
+                                <option selected>Selecionar uma opção</option>
+                                <% areaDoc.forEach(function(area){ %>
+                                    <option value="<%= area.codAreaCient %>" <%= ficha[0].areaCientDoc == area.codAreaCient ? "selected" : "" %>><%= area.nomeAreaCient %></option>
+                                <% }) %>
+                            </select>
+                        </div>
+                        <script>
+                            function selectAreaTitulo(){
+                                let cod = $("#cbAreaTitulo").val()
+                                $.ajax({
+                                    type: 'GET',
+                                    url:'https://qualidadebo.uatlantica.pt/getArea2/' + cod,
+                                    dataType: 'json'
+                                })
+                                .done((data)=>{
+                                    let listItems = '';
+                                    let selectedValue = '<%= ficha[0].areCient2Doc %>';
+                                    $.each(data, (key, value) =>{
+                                        let selected = value["codAreaCient3Niv"] == selectedValue ? 'selected' : '';
+                                        listItems += `<option value="${value["codAreaCient3Niv"]}" ${selected}>${value["nomeAreaCient"]}</option>`;
+                                    })
+                                    $("#cbAreaTitulo2").empty();
+                                    $("#cbAreaTitulo2").append('<option selected>Selecionar uma opção</option>');
+                                    $("#cbAreaTitulo2").append(listItems);
+                                })
+                                .fail((jqXHR, textStatus, err) => {
+                                    console.log('AJAX error response: ', err);
+                                })
+                            }
+                        </script>
+                        
+                        <div class="col-md-12 mt-3">
+                            <p><label for="cbAreaDocente2" class="form-label">Classificação CNAEF</label></p>
+                            <p><label for="cbAreaDocente2" class="form-label">Áreas de educação e formação</label></p>
+                            <select class="form-select" aria-label="Selecionar uma opção" id="cbAreaTitulo2" name="cbAreaTitulo2" required oninvalid="this.setCustomValidity('Campo obrigatório')" >
+                                <option selected>Selecionar uma opção</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row mt-5">
+                        <div class="input-group mb-3">
+                            <span class="input-group-text" id="iesTituloAddon">Instituição</span>
+                            <input type="text" class="form-control" id="tbIesTitulo" name="tbIesTitulo" aria-label="tbIesTitulo" aria-describedby="iesTituloAddon" required oninvalid="this.setCustomValidity('Campo obrigatório')" >
+                        </div>
+                        <div class="input-group mb-3">
+                            <span class="input-group-text" id="iesTituloEngAddon">Instituição (inglês opcional)</span>
+                            <input type="text" class="form-control" id="tbIesTituloEng" name="tbIesTituloEng" aria-label="tbIesTituloEng" aria-describedby="iesTituloEngAddon">
+                        </div>
+                    </div>
+                    <div class="row mt-5">
+                        <div class="input-group mb-3">
+                            <span class="input-group-text" id="grauTituloAddon">Classificação</span>
+                            <input type="text" class="form-control" id="tbGrauTitulo" name="tbGrauTitulo" aria-label="tbGrauTitulo" aria-describedby="grauTituloAddon" required oninvalid="this.setCustomValidity('Campo obrigatório')" >
+                        </div>
+                        <div class="input-group mb-3">
+                            <span class="input-group-text" id="grauTituloEngAddon">Classificação (inglês opcional)</span>
+                            <input type="text" class="form-control" id="tbGrauTituloEng" name="tbGrauTituloEng" aria-label="tbGrauTituloEng" aria-describedby="grauTituloEngAddon">
+                        </div>
+                    </div>
+
+                    <div class="row mt-5">
+                        <div class="form-check">
+                            <!--<input type="checkbox" id="grauEstrangTitulo" name="grauEstrangTitulo" class="form-check-input" onchange="notaEstrangTitulo()" <%= ficha[0].grauEstrangDoc == 1 ? "checked" : "" %>>-->
+                            <input type="checkbox" id="grauEstrangTitulo" name="grauEstrangTitulo" class="form-check-input" onchange="notaEstrangTitulo()">
+                            <label class="form-check-label" for="grauEstrangTitulo">
+                                Grau ou Diploma de Ensino Superior obtido no Estrangeiro
+                            </label>
+                            <script>
+                                function notaEstrangTitulo(){
+                                    if($("#grauEstrangTitulo").is(":checked")){
+                                        
+                                        $('#plnGrauEstrangTitulo').removeClass("invisible");
+                                    }else{
+                                        $('#tbDataGrauEstrangTitulo').val('');
+                                        $('#tbnotaEstrangTitulo').val('');
+                                        $('#plnGrauEstrangTitulo').addClass("invisible");
+                                    }
+                                }
+                            </script>
+                        </div>
+                    </div>
+                    <div class="row mt-5 invisible" id="plnGrauEstrangTitulo">
+                        <div class="form-check form-check-inline">
+                            <input type="radio" class="btn-check" name="optionsGrauTitulo" id="grauNivelTitulo" value="nivelTitulo" autocomplete="off" >
+                            <label class="btn " for="grauNivelTitulo">Reconhecimento de nível</label>
+                            <input type="radio" class="btn-check" name="optionsGrauTitulo" id="grauEspecificTitulo" value="especificoTitulo" autocomplete="off">
+                            <label class="btn " for="grauEspecificTitulo">Reconhecimento específico</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            
+                        </div>
+                        <div class="input-group mb-3">
+                            <span class="input-group-text" id="dataGrauEstragTituloAddon">Data do Registo</span>
+                            <input type="text" class="form-control startdate" id="tbDataGrauEstrangTitulo" name="tbDataGrauEstrangTitulo" aria-label="tbDataGrauEstrangTitulo" aria-describedby="dataGrauEstragTituloAddon" value="">
+                        </div>
+                        <script>
+                            $(function() {
+                                $('#tbDataGrauEstrangTitulo').datepicker();
+                            });
+                            
+                        </script>
+                        <div class="input-group mb-3">
+                            <span class="input-group-text" id="notaEstrangTituloAddon">Equivalência do Grau e Conversão de Nota:</span>
+                            <input type="text" class="form-control" id="tbnotaEstrangTitulo" name="tbnotaEstrangTitulo" aria-label="tbnotaEstrangTitulo" aria-describedby="notaEstrangAddonTitulo" value="">
+                        </div>
+                        <div class="input-group mb-3">
+                            <span class="input-group-text" id="iesEstrangTituloAddon">Instituição que atribuiu:</span>
+                            <input type="text" class="form-control" id="tbIesEstrangTitulo" name="tbIesEstrangTitulo" aria-label="tbIesEstrangTitulo" aria-describedby="tbIesEstrangTitulo" value="">
+                        </div>
+                    </div>
+
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Sair</button>
+                    <button type="submit" class="btn btn-primary">Gravar</button>
+                </div>
+            </form>
+            
+        </div>
+    </div>
+</div>
+<!-- End Modal-->
+
+<div class="row mt-5">
+    <div class="col-md-12">
+        <p class="h5 text-red">Outros graus ou títulos académicos</p>
+        <p class="h3 text-red"><%= ficha[0].nomeDoc  %></p>
+    </div>
+    <div class="col-md-12">
+        <p class="h2 text-red">
+            <div class="row mt-5">
+                <a class="btn btn-sm btn-primary addForm">Adicionar Formação</a>
+            </div>
+            <div class="row mt-5">
+                <table class="table table-hover">
+                    <thaed>
+                        <tr>
+                            <th>Ano</th>
+                            <th>Grau ou Título</th>
+                            <th>Área</th>
+                            <th>Instituição</th>
+                            <th>Classificação</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thaed>
+                    <tbody>
+                        <% forma.forEach(function(f) { %>
+                            
+                            <tr>
+                                <td><%= f.ano %></td>
+                                <td><%= f.nome %></td>
+                                <td><%= f.area2Nome %></td>
+                                <td><%= f.ies %></td>
+                                <td><%= f.classif %></td>
+                                <td><a id="idForma" name="idForma" class="editFormacao" data-id="<%= f.idfichaDocTitulos %>"><i class="fa-solid fa-pen-to-square"></i></a> - <a id="delForma" name="delForma" class="delFormacao" data-id="<%= f.idfichaDocTitulos %>"><i class="fa-solid fa-delete-left"></i></a></td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        </p>
+    </div>
+</div>

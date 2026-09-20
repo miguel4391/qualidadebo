@@ -1,0 +1,101 @@
+<%- include('partials/header') %>
+<style>
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid #ccc; padding: 8px 12px; text-align: left; }
+    th { background-color: #f2f2f2; }
+    .badge-ativo { color: green; font-weight: bold; }
+    .badge-inativo { color: red; font-weight: bold; }
+    .acoes a, .acoes button {
+        margin-right: 6px;
+        text-decoration: none;
+        cursor: pointer;
+    }
+    .btn-add {
+        display: inline-block;
+        margin-bottom: 15px;
+        padding: 8px 14px;
+        background-color: #2e7d32;
+        color: white;
+        border-radius: 4px;
+        text-decoration: none;
+    }
+</style>
+
+<div class="container">
+    <div class="row">
+        <div class="col-xl-2 col-lg-1">
+        <%- include('partials/sideMenu') %>
+    </div>
+    <div class="col-xl-1 col-lg-1"></div>
+    <div class="col-xl-8">
+        <h1>Lista de Colaboradores</h1>
+        <div class="row my-5">
+            <div class="d-grid gap-2 mb-5">
+                <input type="text" id="searchInput" placeholder="Procurar tabela..." class="form-control mb-3">
+            </div>
+            <div class="d-grid gap-2">
+                <a href="/fichaColab" class="btn-sm btn btn-primary">Adicionar Colaborador</a>
+            </div>
+        </div>
+
+        <table class="table table-hover" id="colabTable">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>Nº Colaborador</th>
+                    <th>Nome</th>
+                    <th>Ativo</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                <% colaboradores.forEach(c => { %>
+                    <tr>
+                        <td><a href="/fichaColab/<%= c.numero %>"><i class="fa-solid fa-pen-to-square"></i></a></td>
+                        <td><%= c.numero %></td>
+                        <td><%= c.nome %></td>
+                        <td>
+                            <% if (c.ativo === 1) { %>
+                                <span class="badge-ativo">Ativo</span>
+                            <% } else { %>
+                                <span class="badge-inativo">Inativo</span>
+                            <% } %>
+                        </td>
+                        <td class="acoes">
+                            <!--<a href="/fichaColab/<%= c.nrColab %>/view">Visualizar</a>-->
+                            
+                            <form action="/fichaColab/<%= c.numero %>/delete" method="POST" style="display:inline"
+                                onsubmit="return confirm('Tem a certeza que quer apagar este colaborador?');">
+                                <button class="btn" style="color: #0d6efd;" type="submit"><i class="fa-solid fa-delete-left"></i></button>
+                            </form>
+                        </td>
+                    </tr>
+                <% }) %>
+            </tbody>
+        </table>
+    </div>
+</div>
+<script>
+    document.getElementById('searchInput').addEventListener('keyup', function () {
+
+        let filter = this.value.toLowerCase();
+
+        let rows = document.querySelectorAll('#colabTable tbody tr');
+
+        rows.forEach(row => {
+
+            let text = row.textContent.toLowerCase();
+
+            if (text.includes(filter)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+
+        });
+
+    });
+</script>
+    
+
+<%- include('partials/footer') %>

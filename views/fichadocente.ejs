@@ -1,0 +1,526 @@
+<%- include('partials/header') %>
+<style>
+    .invisible{
+        display: none;
+    }
+    body{
+        --bs-link-color:#000;
+        --bs-link-hover-color: #000;
+    }
+
+</style>
+<script>
+    $(document).ready(function () {
+        setecTipo(); 
+        selectArea();
+        notaEstrang();
+        tituloEspChng();
+        selectAreaEsp();
+
+        setTimeout(() =>{
+            if($('#cbTipo2').val() === "Protocolo IES"){
+                selectOut();
+            }
+        },2000);
+        
+        
+        function toggleDoutorando(){
+        if($("#doutorando").is(":checked")){
+            $('#plnDoutorando').removeClass("invisible");
+        } else {
+            $('#plnDoutorando').addClass("invisible");
+        }
+    }
+
+    // run on load
+    toggleDoutorando();
+
+    // bind event
+    $('#doutorando').on('change', toggleDoutorando);
+    });
+</script>
+<div class="container mt-5">
+    <nav class="mt-5">
+        <div class="nav nav-tabs" id="nav-tab" role="tablist">
+            <button class="nav-link active" id="nav-fcd-tab" data-bs-toggle="tab" data-bs-target="#nav-fcd" type="button" role="tab" aria-controls="nav-fcd" aria-selected="true">Dados pessoais</button>
+            <button class="nav-link" id="nav-graus-tab" data-bs-toggle="tab" data-bs-target="#nav-graus" type="button" role="tab" aria-controls="nav-graus" aria-selected="false">Outros graus ou títulos académicos</button>
+            <button class="nav-link" id="nav-pedg-tab" data-bs-toggle="tab" data-bs-target="#nav-pedg" type="button" role="tab" aria-controls="nav-pedg" aria-selected="false">Formação pedagógica</button>
+            <button class="nav-link" id="nav-invest-tab" data-bs-toggle="tab" data-bs-target="#nav-invest" type="button" role="tab" aria-controls="nav-invest" aria-selected="false">Afiliação a unidades de investigação</button>
+        </div>
+    </nav>
+    <div class="tab-content" id="nav-tabContent">
+
+        
+        
+        <div class="tab-pane fade show active" id="nav-fcd" role="tabpanel" aria-labelledby="nav-fcd-tab">
+        
+            <form method="post" action="/setFichaDocCompleto">
+                <input type="hidden" value="<%= ficha[0] ? ficha[0].idfichaDoc : 0  %>" id="idDoc" name="idDoc">
+                <div class="row mt-5">
+                    <div class="col-md-12">
+                        <p class="h5 text-red">Ficha curricular de docente</p>
+                        <p class="h3 text-red"><%= ficha[0].nomeDoc  %></p>
+                    </div>
+                    <div class="col-md-12">
+                        <p class="h2 text-red"></p>
+                    </div>
+                </div>
+                <div class="row mt-5">
+                    <div class="input-group mb-3">
+                        <span class="input-group-text" id="nomeAddon">Nome</span>
+                        <input type="text" class="form-control" id="tbNome" name="tbNome" aria-label="tbNome" aria-describedby="nomeAddon" value="<%= ficha[0].nomeDoc %>" readonly>
+                    </div>
+                    <div class="input-group mb-3">
+                        <span class="input-group-text" id="emailAddon">Email institucional</span>
+                        <input type="text" class="form-control" id="tbEmail" name="tbEmail" aria-label="tbEmail" aria-describedby="emailAddon" value="<%= ficha[0].emailDoc %>@uatlantica.pt" readonly>
+                    </div>
+                </div>
+                <div class="row mt-5 d-flex align-items-end">
+                    <div class="col-md-4 col-sm-6 col-xs-12">
+                        <label for="cbVinvulo" class="form-label">Vínculo com a IES</label>
+                        <select class="form-select" aria-label="Selecionar uma opção" id="cbVinvulo" name="cbVinvulo">
+                            <option selected>Selecionar uma opção</option>
+                            <option value="A" <%= ficha[0].vinculoIes == "A" ? "selected" : "" %>>ATLÂNTICA</option>
+                            <option value="E" <%= ficha[0].vinculoIes == "E" ? "selected" : "" %>>ESSATLA</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 col-sm-6 col-xs-12 d-flex flex-column justify-content-end">
+                        <label for="tbAnoVinc" class="form-label">Desde (ano):</label>
+                        <input type="text" class="form-control" id="tbAnoVinc" name="tbAnoVinc"
+                            value="<%= ficha[0].anoVinculo ? ficha[0].anoVinculo : 0 %>">
+                    </div>
+                    <script>
+                        $('#tbAnoVinc').on('input', function () {
+                            this.value = this.value.replace(/[^0-9]/g, '');
+                        });
+                    </script>
+                    <div class="col-md-4 col-sm-6 col-xs-12 d-flex flex-column justify-content-end>
+                        <div class="col-md-4 col-sm-6 col-xs-12">
+                        <label for="tbNrMec" class="form-label">Nº Mecanográfico</label>
+                        <input 
+                            type="text"
+                            class="form-control"
+                            id="tbNrMec"
+                            name="tbNrMec"
+                            maxlength="5"
+                            aria-label="tbNrMec"
+                            aria-describedby="tbNrMec"
+                            value="<%= ficha[0].nrMec ? ficha[0].nrMec : 0 %>"
+                            readonly
+                        >
+
+                        <script>
+                            $('#tbNrMec').on('input', function () {
+
+                                // remove tudo o que não for número
+                                //this.value = this.value.replace(/\D/g, '');
+
+                                // limita a 5 dígitos
+                                this.value = this.value.slice(0, 5);
+                            });
+                        </script>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4 col-sm-6 col-xs-12">
+                        <label for="cbTipoDOcente" class="form-label">Tipo Docente</label>
+                        <select class="form-select" aria-label="Selecionar uma opção" id="cbTipo" name="cbTipo" onchange="setecTipo()">
+                            <option selected>Selecionar uma opção</option>
+                            <% tipoDocente.forEach(function(tipo){ %>
+                                <option value="<%= tipo.nomeOpcao %>" <%= ficha[0].tipoDoc == tipo.nomeOpcao ? "selected" : "" %>><%= tipo.nomeOpcao %></option>
+                            <% }) %>
+                        </select>
+                        <script>
+                            function setecTipo(){
+                                let tipo = $('#cbTipo').val();
+                                let tipoDoc = "docTipo"
+                                if(tipo == 'Selecionar uma opção'){
+                                    $("#cbTipo2").empty();
+                                    $("#cbTipo2").append('<option selected>Selecionar uma opção</option>');
+                                } else{
+                                    if(tipo =="Outro"){
+                                        tipoDoc = "out";
+                                    }
+                                    $.ajax({
+                                        type: 'GET',
+                                        url:'https://qualidadebo.uatlantica.pt/getTipoDoc/' + tipoDoc,
+                                        dataType: 'json'
+                                    })
+                                    .done((data)=>{
+                                        let listItems = '';
+                                        let selectedValue = '<%= ficha[0].tipoDoc2 %>';
+                                        $.each(data, (key, value) =>{
+                                            let selected = value["nomeOpcao"] == selectedValue ? 'selected' : '';
+                                            listItems += `<option value="${value["nomeOpcao"]}" ${selected}>${value["nomeOpcao"]}</option>`;
+                                        })
+                                        $("#cbTipo2").empty();
+                                        $("#cbTipo2").append('<option selected>Selecionar uma opção</option>');
+                                        $("#cbTipo2").append(listItems);
+                                    })
+                                    .fail((jqXHR, textStatus, err) => {
+                                        console.log('AJAX error response: ', err);
+                                    })
+                                }                     
+                            }
+                        </script>
+                    </div>
+                    <div class="col-md-4 col-sm-6 col-xs-12">
+                        <label for="cbTipoDOcente" class="form-label"> </label>
+                        <select class="form-select" aria-label="Selecionar uma opção" id="cbTipo2" name="cbTipo2" onchange="selectOut()">
+                            <option selected>Selecionar uma opção</option>
+                        </select>
+                        <script>
+                            function selectOut(){
+                                if($("#cbTipo2").val() == 'Protocolo IES'){
+                                    
+                                    $('#plnIES').removeClass("invisible");
+                                }else{
+                                    $('#nomeIES').val('');
+                                    $('#plnIES').addClass("invisible");
+                                }
+                            }
+                        </script>
+                    </div>
+                </div>
+                <div class="row mt-5 invisible" id="plnIES">
+                    <div class="input-group mb-3">
+                        <span class="input-group-text" for="nomeIES">Nome da IES</span>
+                        <input type="text" class="form-control" id="nomeIES" name="nomeIES" aria-label="nomeIES" aria-describedby="nomeIES" value="<%= ficha[0].nomeIesProtoc %>">
+                    </div>
+                </div>
+                <div class="row mt-5">
+                    <div class="col-12">
+                        <label for="cbCatDocente" class="form-label">Categoria</label>
+                        <select class="form-select" aria-label="Selecionar uma opção" id="cbCatDocente" name="cbCatDocente"> 
+                            <option selected>Selecionar uma opção</option>
+                            <% catDocente.forEach(function(cat){ %>
+                                <option value="<%= cat.nomeCategoria %>" <%= ficha[0].catDoc == cat.nomeCategoria ? "selected" : "" %>><%= cat.nomeCategoria %></option>
+                                
+                            <% }) %>
+                        </select>
+                    </div>
+                </div>
+                <div class="row mt-5">
+                    <div class="col-12">
+                        <label for="cbGrauDocente" class="form-label">Grau</label>
+                        <select class="form-select" aria-label="Selecionar uma opção" id="cbGrauDocente" name="cbGrauDocente" >
+                            <option selected>Selecionar uma opção</option>
+                            <% grauDocente.forEach(function(grau){ %>
+                                <option value="<%= grau.idtbOpcaoGrau %>" <%= ficha[0].grauDoc == grau.idtbOpcaoGrau ? "selected" : "" %>><%= grau.nomeGrau %> - <%= grau.cicloGrau %></option>
+                            <% }) %>
+                        </select>
+                    </div>
+                </div>
+                <div class="row mt-5">
+                    <div class="col-md-6 col-xs 12">
+                        <p><label for="cbAreaDocente" class="form-label">Área científica deste grau académico</label></p>
+                        <p><label for="cbAreaDocente" class="form-label">Áreas de estudo (CITE)</label></p>
+                        <select class="form-select" aria-label="Selecionar uma opção" id="cbAreaDocente" name="cbAreaDocente" onchange="selectArea()">
+                            <option selected>Selecionar uma opção</option>
+                            <% areaDoc.forEach(function(area){ %>
+                                <option value="<%= area.codAreaCient %>" <%= ficha[0].areaCientDoc == area.codAreaCient ? "selected" : "" %>><%= area.nomeAreaCient %></option>
+                            <% }) %>
+                        </select>
+                        <script>
+                            function selectArea(){
+                                let cod = $("#cbAreaDocente").val()
+                                $.ajax({
+                                        type: 'GET',
+                                        url:'https://qualidadebo.uatlantica.pt/getArea2/' + cod,
+                                        dataType: 'json'
+                                    })
+                                    .done((data)=>{
+                                        let listItems = '';
+                                        let selectedValue = '<%= ficha[0].areCient2Doc %>';
+                                        $.each(data, (key, value) =>{
+                                            let selected = value["codAreaCient3Niv"] == selectedValue ? 'selected' : '';
+                                            listItems += `<option value="${value["codAreaCient3Niv"]}" ${selected}>${value["nomeAreaCient"]}</option>`;
+                                        })
+                                        $("#cbAreaDocente2").empty();
+                                        $("#cbAreaDocente2").append('<option selected>Selecionar uma opção</option>');
+                                        $("#cbAreaDocente2").append(listItems);
+                                    })
+                                    .fail((jqXHR, textStatus, err) => {
+                                        console.log('AJAX error response: ', err);
+                                    })
+                            }
+                        </script>
+                    </div>
+                    <div class="col-md-6 col-xs 12">
+                        <p><label for="cbAreaDocente2" class="form-label">Classificação CNAEF</label></p>
+                        <p><label for="cbAreaDocente2" class="form-label">Áreas de educação e formação</label></p>
+                        <select class="form-select" aria-label="Selecionar uma opção" id="cbAreaDocente2" name="cbAreaDocente2">
+                            <option selected>Selecionar uma opção</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row mt-5">
+                    <div class="input-group mb-3">
+                        <span class="input-group-text" id="anoGrauAddon">Ano em que foi obtido este grau académico</span>
+                        <input type="text" class="form-control" inputmode="numeric" pattern="[0-9]+" id="tbAnoGrau" name="tbAnoGrau" aria-label="tbAnoGrau" aria-describedby="anoGrauAddon" value="<%= ficha[0].anoGrauDoc %>">
+                    </div>
+                    <script>
+                        $('#tbAnoGrau').on('input', function () {
+                            this.value = this.value.replace(/[^0-9]/g, '');
+                        });
+                    </script>
+                    <div class="input-group mb-3">
+                        <span class="input-group-text" id="iesGrauAddon">Instituição que conferiu este grau académico</span>
+                        <input type="text" class="form-control" id="tbIesGrau" name="tbIesGrau" aria-label="tbIesGrau" aria-describedby="iesGrauAddon" value="<%= ficha[0].iesGrauDoc %>">
+                    </div>
+                </div>
+                <div class="row mt-5">
+                    <div class="form-check">
+                        <input type="checkbox" id="grauEstrang" name="grauEstrang" class="form-check-input" onchange="notaEstrang()" <%= ficha[0].grauEstrangDoc == 1 ? "checked" : "" %>>
+                        <label class="form-check-label" for="grauEstrang">
+                            Grau ou Diploma de Ensino Superior obtido no Estrangeiro
+                        </label>
+                        <script>
+                            function notaEstrang(){
+                                if($("#grauEstrang").is(":checked")){
+                                    
+                                    $('#plnGrauEstrang').removeClass("invisible");
+                                }else{
+                                    $('#tbDataGrauEstrang').val('');
+                                    $('#tbnotaEstrang').val('');
+                                    $('#plnGrauEstrang').addClass("invisible");
+                                }
+                            }
+                        </script>
+                    </div>
+                </div>
+                <div class="row mt-5 invisible" id="plnGrauEstrang">
+                    <div class="form-check form-check-inline">
+                        <input type="radio" class="btn-check" name="optionsGrau" id="grauNivel" value="nivel" autocomplete="off" <%= ficha[0].grauNivelDoc == "nivel" ? "checked" : "" %>>
+                        <label class="btn " for="grauNivel">Reconhecimento de nível</label>
+                        <input type="radio" class="btn-check" name="optionsGrau" id="grauEspecific" value="especifico" autocomplete="off" <%= ficha[0].grauNivelDoc == "especifico" ? "checked" : "" %>>
+                        <label class="btn " for="grauEspecific">Reconhecimento específico</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        
+                    </div>
+                    <div class="input-group mb-3">
+                        <span class="input-group-text" id="dataGrauEstragAddon">Data do Registo</span>
+                        <input type="text" class="form-control startdate" id="tbDataGrauEstrang" name="tbDataGrauEstrang" aria-label="tbDataGrauEstrang" aria-describedby="dataGrauEstragAddon" value="<%= ficha[0].dataRegEst %>">
+                    </div>
+                    <script>
+                        $(function() {
+                            $('#tbDataGrauEstrang').datepicker();
+                        });
+                        
+                    </script>
+                    <div class="input-group mb-3">
+                        <span class="input-group-text" id="notaEstrangAddon">Equivalência do Grau e Conversão de Nota:</span>
+                        <input type="text" class="form-control" id="tbnotaEstrang" name="tbnotaEstrang" aria-label="tbnotaEstrang" aria-describedby="notaEstrangAddon" value="<%= ficha[0].equivGraduEst %>">
+                    </div>
+                </div>
+                <div class="row mt-5 ">
+                    <div class="form-check">
+                        <input type="checkbox" id="tituloEsp" name="tituloEsp" class="form-check-input" onchange="tituloEspChng()" <%= ficha[0].especialDoc == 1 ? "checked" : "" %>>
+                        <label class="form-check-label" for="tituloEsp">
+                            Título de Especialista
+                        </label>
+                        <script>
+                            function tituloEspChng(){
+                                if($("#tituloEsp").is(":checked")){
+                                    
+                                    $('#plnTituloEsp').removeClass("invisible");
+                                }else{
+                                    //$('#tbDataGrauEstrang').val('');
+                                    //$('#tbnotaEstrang').val('');
+                                    $('#plnTituloEsp').addClass("invisible");
+                                }
+                            }
+                        </script>
+                    </div>
+                </div>
+                <div class="row mt-5 invisible" id="plnTituloEsp">
+                    <div class="input-group mb-3">
+                        <span class="input-group-text" id="nomeTituloEspAddon">Designação do título de especialista (Português):</span>
+                        <input type="text" class="form-control" id="tbNomeTituloEdsp" name="tbNomeTituloEdsp" aria-label="tbNomeTituloEdsp" aria-describedby="nomeTituloEspAddon" value="<%= ficha[0].nomeTitEspec %>">
+                    </div>
+                    <div class="input-group mb-3">
+                        <span class="input-group-text" id="nomeTituloEspEstAddon">Designação do título de especialista (inglês - Optional):</span>
+                        <input type="text" class="form-control" id="tbNomeTituloEdspEst" name="tbNomeTituloEdspEst" aria-label="tbNomeTituloEdspEst" aria-describedby="nomeTituloEspEstAddon" value="<%= ficha[0].nomeTitEspecEng %>">
+                    </div>
+                    <div class="col-md-6 col-xs 12">
+                        <p><label for="cbAreaDocente" class="form-label">Área científica do título de especialista</label></p>
+                        <p><label for="cbAreaDocente" class="form-label">Áreas de estudo (CITE)</label></p>
+                        <select class="form-select" aria-label="Selecionar uma opção" id="cbAreaDocenteEsp" name="cbAreaDocenteEsp" onchange="selectAreaEsp()">
+                            <option selected>Selecionar uma opção</option>
+                            <% areaDoc.forEach(function(area){ %>
+                                <option value="<%= area.codAreaCient %>" <%= ficha[0].areaCientEsp == area.codAreaCient ? "selected" : "" %>><%= area.nomeAreaCient %></option>
+                            <% }) %>
+                        </select>
+                        <script>
+                            function selectAreaEsp(){
+                                let cod = $("#cbAreaDocenteEsp").val()
+                                $.ajax({
+                                        type: 'GET',
+                                        url:'https://qualidadebo.uatlantica.pt/getArea2/' + cod,
+                                        dataType: 'json'
+                                    })
+                                    .done((data)=>{
+                                        let listItems = '';
+                                        let selectedValue = '<%= ficha[0].areaCient2Esp %>';
+                                        $.each(data, (key, value) =>{
+                                            let selected = value["codAreaCient3Niv"] == selectedValue ? 'selected' : '';
+                                            listItems += `<option value="${value["codAreaCient3Niv"]}" ${selected}>${value["nomeAreaCient"]}</option>`;
+                                        })
+                                        
+                                        $("#cbAreaDocente2Esp").empty();
+                                        $("#cbAreaDocente2Esp").append('<option selected>Selecionar uma opção</option>');
+                                        $("#cbAreaDocente2Esp").append(listItems);
+                                    })
+                                    .fail((jqXHR, textStatus, err) => {
+                                        console.log('AJAX error response: ', err);
+                                    })
+                            }
+                        </script>
+                    </div>
+                    <div class="col-md-6 col-xs 12">
+                        <p><label for="cbAreaDocente2" class="form-label">Classificação CNAEF</label></p>
+                        <p><label for="cbAreaDocente2" class="form-label">Áreas de educação e formação</label></p>
+                        <select class="form-select" aria-label="Selecionar uma opção" id="cbAreaDocente2Esp" name="cbAreaDocente2Esp">
+                            <option selected>Selecionar uma opção</option>
+                        </select>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="input-group mb-3">
+                            <span class="input-group-text" id="anoEspAddon">Ano em que foi obtido este título de especialista</span>
+                            <input type="text" class="form-control" inputmode="numeric" pattern="[0-9]+" id="tbAnoEsp" name="tbAnoEsp" aria-label="tbAnoEsp" aria-describedby="anoEspAddon" value="<%= ficha[0].anoTitEspec %>">
+                        </div>
+                        <script>
+                            $('#tbAnoEsp').on('input', function () {
+                                this.value = this.value.replace(/[^0-9]/g, '');
+                            });
+                        </script>
+                        <div class="input-group mb-3">
+                            <span class="input-group-text" id="iesEspAddon">Instituição que conferiu este título de especialista</span>
+                            <input type="text" class="form-control" id="tbIesEsp" name="tbIesEsp" aria-label="tbIesEsp" aria-describedby="iesEspAddon" value="<%= ficha[0].iesTitEspec %>">
+                        </div>
+                        <div class="input-group mb-3">
+                            <span class="input-group-text" id="iesEspEstAddon">Instituição que conferiu este título de especialista (Inglês)</span>
+                            <input type="text" class="form-control" id="tbIesEspEst" name="tbIesEspEst" aria-label="tbIesEspEst" aria-describedby="iesEspEstAddon" value="<%= ficha[0].iesTitEspecEng %>">
+                        </div>
+                    </div>
+                </div> 
+                <div class="row mt-5">
+                    <div class="input-group mb-3">
+                        <span class="input-group-text" id="perDedicAddon">Regime de dedicação na instituição (%)</span>
+                        <input type="text" class="form-control" inputmode="numeric" pattern="[0-9]+" id="tbPercDedic" name="tbPercDedic" aria-label="tbPercDedic" aria-describedby="perDedicAddon" value="<%= ficha[0].percIes %>">
+                    </div>
+                    <script>
+                        $('#tbPercDedic').on('input', function () {
+                            this.value = this.value.replace(/[^0-9]/g, '');
+                            let value = parseInt(this.value, 10);
+
+                            if (!isNaN(value)) {
+                                if (value > 100) value = 100;
+                                if (value < 0) value = 0;
+
+                                this.value = value;
+                            }
+                        });
+                    </script>
+                </div> 
+                <div class="row mt-5">
+                    <div class="input-group mb-3">
+                        <span class="input-group-text" id="cienciaVitaeAddon">Código Ciência Vitae</span>
+                        <input type="text" class="form-control" id="tbCienciaVitae" name="tbCienciaVitae" aria-label="tbCienciaVitae" aria-describedby="cienciaVitaeAddon" value="<%= ficha[0].CiencVitae %>">
+                    </div>
+                    <div class="input-group mb-3">
+                        <span class="input-group-text" id="orcidAddon">ORCID</span>
+                        <input type="text" class="form-control" id="tbOrcid" name="tbOrcid" aria-label="tbOrcid" aria-describedby="orcidAddon" value="<%= ficha[0].orcid %>">
+                    </div>
+                </div> 
+                <div class="row mt-5 p-3">
+                    <% orgGest.forEach((orgao) => { %>
+                        <% if(ficha[0].AreaGest.includes(orgao.codOpcao)) {%>
+                            <div class="form-check">
+                                <input 
+                                    class="form-check-input area-checkbox" 
+                                    type="checkbox" 
+                                    value="<%= orgao.codOpcao %>"                                    
+                                    name="areas[]"
+                                    checked
+                                    disabled
+                                >
+                                <label class="form-check-label"><%= orgao.opcao %></label>
+                            </div>
+                        <% }else{ %>
+                        <div class="form-check">
+                                <input 
+                                    class="form-check-input area-checkbox" 
+                                    type="checkbox" 
+                                    value="<%= orgao.codOpcao %>"                                    
+                                    name="areas[]"
+                                >
+                                <label class="form-check-label"><%= orgao.opcao %></label>
+                            </div>
+                        <% } %>
+                    <% }) %>
+                </div>
+                <div class="row mt-5">
+                    <div class="form-check">
+                        <input type="checkbox" id="doutorando" name="doutorando" class="form-check-input" <%= ficha[0].doutorando == 1 ? "checked" : "" %>  >
+                        <label class="form-check-label" for="doutorando">
+                            Docente inscrito em programas de doutoramento há mais de um ano
+                        </label>
+                    </div>
+                </div>
+                <div class="row mt-5 invisible" id="plnDoutorando">
+                    <div class="input-group mb-3">
+                        <span class="input-group-text" id="anoDoutorandoAddon">Ano da primeira inscrição</span>
+                        <input type="text" class="form-control" id="tbAnoDoutorando" name="tbAnoDoutorando" aria-label="tbAnoDoutorando" aria-describedby="anoDoutorandoAddon" value="<%= ficha[0].anoDoutorando %>">
+                    </div>
+                    
+                    <script>
+                        $('#tbAnoDoutorando').on('input', function () {
+                            this.value = this.value.replace(/[^0-9]/g, '');
+                        });
+                    </script>
+                </div>
+                <div class="row mt-5">
+                    <div class="form-check">
+                        <input type="checkbox" id="autoriza" name="autoriza" class="form-check-input" <%= ficha[0].auth == 1 ? "checked" : "" %>>
+                        <label class="form-check-label fs-7" for="autoriza">
+                            Autoriza que as suas informações pessoais sejam recolhidas, armazenadas e utilizadas pelas entidades, EIA — Ensino, Investigação e Administração, S.A. e A3ES - Agência de Avaliação e Acreditação do Ensino Superior, exclusivamente para fins funcionais e analíticos, no âmbito dos processos de acreditação.
+                        </label>
+                    </div>
+                </div>
+                <div class="row mt-5">
+                    <div class="col">
+                        <div class="d-grid gap-2">
+                            <a href="https://qualidadebo.uatlantica.pt/fichaDocente" class="btn btn-danger">Voltar</a>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-sm btn-outline-primary">Gravar</button>
+                        </div>
+                    </div>
+                    
+                </div>
+            </form>
+            
+
+        </div>
+        
+        <div class="tab-pane fade" id="nav-graus" role="tabpanel" aria-labelledby="nav-graus-tab">
+            <%- include('ficDocFormAcadem') %>
+        </div>
+        <div class="tab-pane fade" id="nav-pedg" role="tabpanel" aria-labelledby="nav-pedg-tab">
+            <%- include('ficDocFormPedag') %>
+        </div>
+        <div class="tab-pane fade" id="nav-invest" role="tabpanel" aria-labelledby="nav-invest-tab">
+            <%- include('ficDocInvest') %>
+        </div>
+    </div>
+</div>
+
+<%- include('partials/footer') %>
+
+
+<%- include('partials/footer') %>
+

@@ -1,0 +1,19 @@
+'user strict'
+
+var mysql = require('mysql2');
+
+var connection = mysql.createPool({
+    host: '127.0.0.1',
+    user: 'sigqdev',
+    password: 'S1gq@tla',
+    database: 'Qualidade',
+	waitForConnections: true,
+	connnectionLimmit: 10,
+	queueLimit: 0
+});
+
+connection.connect((err) => {
+    if(err) throw err;
+});
+
+module.exports = connection;
