@@ -1262,6 +1262,7 @@ router.post('/setRegentes/:idCurso', (req, res) =>{
 const InsertColaborador = require('../models/colaborador'); // ajusta o caminho conforme o teu projeto
 const GetColaboradorByNumero = require('../models/getColaboradorByNumero');
 const DeleteColaborador = require('../models/deleteColaborador');
+const ReactivateColaborador = require('../models/reactivateColaborador');
 let pool = require('../models/db.js');
 const query = (sql) => new Promise((resolve, reject) => {
     pool.query(sql, (err, results) => err ? reject(err) : resolve(results));
@@ -1351,13 +1352,19 @@ router.post('/enviarColab', (req, res) => {
  
     const v = (val) => (val === undefined || val === null || val === '' ? null : val);
  
+    // CORREÇÃO: cbDepartamento agora é um <select multiple>. Se o utilizador
+    // escolher só UMA opção, o Express entrega uma string; se escolher VÁRIAS,
+    // entrega um array. Normalizamos sempre para array antes de gravar.
+    const idsAreaFunc = Array.isArray(b.cbDepartamento)
+        ? b.cbDepartamento
+        : (b.cbDepartamento ? [b.cbDepartamento] : []);
+ 
     InsertColaborador(
         b.tbNumero,
         b.tbNome,
         b.tbDataAdmissao,
         b.tbEmail,
  
-        v(b.cbDepartamento),   // idAreaFunc
         v(b.cbCatProfissional),// idCatColab
         v(b.cbCargo),          // idFuncao
         v(b.cbTipoContrato),   // idRegime
@@ -1365,6 +1372,7 @@ router.post('/enviarColab', (req, res) => {
         v(b.cbQNQ),            // idNivelQNQ
         v(b.tbAreaForma),      // areaFormacao
         v(b.tbOutForma),       // outrasFormacoes
+        idsAreaFunc,           // array de idAreaFunc selecionados
  
         (err, result) => {
             if (err) {
@@ -1381,6 +1389,16 @@ router.post('/enviarColab', (req, res) => {
     );
 });
 
+router.post('/fichaColab/:id/reativar', isLoggedIn, (req, res) => {
+    ReactivateColaborador(req.params.id, (err) => {
+        if (err) {
+            console.error('Erro ao reativar colaborador:', err);
+            return res.status(500).send('Erro ao reativar colaborador.');
+        }
+        // Volta para a ficha do colaborador já reativado
+        res.redirect('/fichaColab/' + req.params.id);
+    });
+});
 
 
 function isLoggedIn(req, res, next){

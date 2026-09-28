@@ -26,7 +26,7 @@ function formatDateInput(d) {
                              chave usada para encontrar/atualizar o colaborador
                              (o /enviarColab faz UPDATE por "numero"; mudá-lo aqui
                              criaria um colaborador novo em vez de atualizar o atual). -->
-                        <input type="number" class="form-control" id="tbNumero" name="tbNumero"
+                        <input type="text" class="form-control" id="tbNumero" name="tbNumero"
                             aria-label="tbNumero" aria-describedby="numeroAddon"
                             value="<%= colab ? colab.numero : '' %>"
                             <% if (colab) { %> readonly <% } %>
@@ -69,19 +69,20 @@ function formatDateInput(d) {
             <!-- Bloco 3: Organização Interna -->
             <div class="row">
 
-                <div class="col-md-6 mb-3">
+                <div class="col-md-12 mb-3">
                     <label for="cbDepartamento" class="form-label">Áreas Funcionais</label>
-                    <select class="form-select" id="cbDepartamento" name="cbDepartamento" aria-label="Selecionar Departamento">
-                        <option value="">-- Selecione --</option>
+                    <select class="form-select" id="cbDepartamento" name="cbDepartamento" multiple size="6" aria-label="Selecionar Área(s) Funcional(is)">
                         <% areasFunc.forEach(a => { %>
                             <option value="<%= a.idtbOpcaoAreasFunc %>"
-                                <%= (colab && colab.idAreaFunc == a.idtbOpcaoAreasFunc) ? 'selected' : '' %>>
+                                <%= (colab && colab.idsAreaFunc && colab.idsAreaFunc.some(id => id == a.idtbOpcaoAreasFunc)) ? 'selected' : '' %>>
                                 <%= a.sigla %> — <%= a.nome %>
                             </option>
                         <% }) %>
                     </select>
+                    <div class="form-text">Pode selecionar mais do que uma opção (Ctrl/Cmd + clique - MAC) (Ctrl/Alt + clique - Windows ou Linux).</div>
                 </div>
-
+            </div>
+            <div class="row">
                 <div class="col-md-6 mb-3">
                     <label for="cbCatProfissional" class="form-label">Categoria Profissional</label>
                     <select class="form-select" id="cbCatProfissional" name="cbCatProfissional" aria-label="Selecionar Categoria Profissional">
@@ -95,11 +96,11 @@ function formatDateInput(d) {
                     </select>
                 </div>
 
-            </div>
+            
 
             <!-- Bloco 5: Contrato e Carga Horária -->
-            <div class="row">
-                <div class="col-md-5 mb-3">
+            
+                <div class="col-md-6 mb-3">
                     <label for="cbCargo" class="form-label">Função</label>
                     <select class="form-select" id="cbCargo" name="cbCargo" aria-label="Selecionar Tipo de Função">
                         <option value="">-- Selecione --</option>
@@ -111,7 +112,9 @@ function formatDateInput(d) {
                         <% }) %>
                     </select>
                 </div>
-                <div class="col-md-4 mb-3">
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
                     <label for="cbTipoContrato" class="form-label">Tipo de Contrato</label>
                     <select class="form-select" id="cbTipoContrato" name="cbTipoContrato" aria-label="Selecionar Tipo de Contrato">
                         <option value="">-- Selecione --</option>
@@ -123,7 +126,7 @@ function formatDateInput(d) {
                         <% }) %>
                     </select>
                 </div>
-                <div class="col-md-3 mb-3">
+                <div class="col-md-6 mb-3">
                     <label for="tbCargaHoraria" class="form-label">Carga Horária Semanal</label>
                     <div class="input-group">
                         <input type="number" class="form-control" id="tbCargaHoraria" name="tbCargaHoraria"
@@ -176,13 +179,22 @@ function formatDateInput(d) {
             </div>
         </form>
 
-        <!-- Eliminar colaborador (só em modo edição) -->
+        <!-- Eliminar / Reativar colaborador (só em modo edição) -->
         <% if (colab) { %>
-            <form action="/fichaColab/<%= colab.numero %>/delete" method="POST"
-                onsubmit="return confirm('Tens a certeza que queres apagar este colaborador?');"
-                class="mt-2">
-                <!--<button type="submit" class="btn btn-outline-danger px-4">Eliminar Colaborador</button>-->
-            </form>
+            <% if (colab.ativo == 1) { %>
+                <form action="/fichaColab/<%= colab.numero %>/delete" method="POST"
+                    onsubmit="return confirm('Tens a certeza que queres apagar este colaborador?');"
+                    class="mt-2">
+                    <button type="submit" class="btn btn-outline-danger px-4">Eliminar Colaborador</button>
+                </form>
+            <% } else { %>
+                <div class="alert alert-secondary mt-2 d-flex justify-content-between align-items-center">
+                    <span>Este colaborador está inativo.</span>
+                    <form action="/fichaColab/<%= colab.numero %>/reativar" method="POST" class="m-0">
+                        <button type="submit" class="btn btn-outline-success px-4">Reativar Colaborador</button>
+                    </form>
+                </div>
+            <% } %>
         <% } %>
 
     </div>
