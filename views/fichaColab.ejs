@@ -155,11 +155,15 @@ function formatDateInput(d) {
             <div class="row mb-4">
                 <div class="col-md-6 mb-3">
                     <label for="tbAreaForma" class="form-label">Área de Formação</label>
-                    <div class="input-group">
-                        <input type="text" class="form-control" id="tbAreaForma" name="tbAreaForma"
-                            aria-label="tbAreaForma" aria-describedby="areaFormaAddon"
-                            value="<%= colab ? colab.areaFormacao : '' %>">
-                    </div>
+                    <select class="form-select " id="tbAreaForma" name="tbAreaForma" aria-label="Selecionar Area Formação">
+                        <option value="">-- Selecione --</option>
+                        <% cnaef.forEach(n => { %>
+                                <option value="<%= n.idtbOpcaoAreaCient3Niv %>"
+                                    <%= (colab && colab.areaFormacao == n.idtbOpcaoAreaCient3Niv) ? 'selected' : '' %>>
+                                    <%= n.nomeAreaCient %>
+                                </option>
+                            <% }) %>
+                    </select>
                 </div>
                 <div class="col-md-6 mb-3">
                     <label for="tbOutForma" class="form-label">Outras Formações</label>

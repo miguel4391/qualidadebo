@@ -1282,14 +1282,15 @@ router.get('/lstFichaColab', isLoggedIn, async (req, res) => {
     }
 });
 async function carregarOpcoes() {
-    const [regimes, niveisQNQ, funcoes, areasFunc, catColab] = await Promise.all([
+    const [regimes, niveisQNQ, funcoes, areasFunc, catColab, cnaef] = await Promise.all([
         query('SELECT idtbOpcaoRegimeColab, nome FROM Qualidade.tbOpcaoRegimeColab ORDER BY nome'),
         query('SELECT idtbOpcaoNiveisQNQ, nome, nivel FROM Qualidade.tbOpcaoNiveisQNQ ORDER BY nivel'),
         query('SELECT idtbOpcaoFuncaoColab, nome FROM Qualidade.tbOpcaoFuncaoColab ORDER BY nome'),
         query('SELECT idtbOpcaoAreasFunc, nome, sigla FROM Qualidade.tbOpcaoAreasFunc ORDER BY nome'),
-        query('SELECT idtrOpcaoCatColab, nome FROM Qualidade.trOpcaoCatColab WHERE ativo = 1 ORDER BY nome')
+        query('SELECT idtrOpcaoCatColab, nome FROM Qualidade.trOpcaoCatColab WHERE ativo = 1 ORDER BY nome'),
+		query('SELECT idtbOpcaoAreaCient3Niv, nomeAreaCient FROM Qualidade.tbOpcaoAreaCient3Niv ORDER BY nomeAreaCient')
     ]);
-    return { regimes, niveisQNQ, funcoes, areasFunc, catColab };
+    return { regimes, niveisQNQ, funcoes, areasFunc, catColab, cnaef };
 }
  
 // Adicionar novo colaborador -> form vazio (colab = null)
