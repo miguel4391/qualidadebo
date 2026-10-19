@@ -1401,6 +1401,100 @@ router.post('/fichaColab/:id/reativar', isLoggedIn, (req, res) => {
     });
 });
 
+router.get('/exportarFichaColaboradoresCompleta', isLoggedIn, async (req, res) => {
+    const db = require('../models/db.js');
+    try {
+        const [rows] = await db.promise().query(`
+            SELECT
+                numero,
+                nome,
+                dataAdmissao,
+                email,
+                categoria,
+                funcao,
+                regime,
+                cargaHoraria,
+                nivelQualificacao,
+                areaFormacao,
+                outrasFormacoes,
+                areasSigla,
+                areasNome
+            FROM Qualidade.vw_ColaboradoresExport
+            ORDER BY nome
+        `);
+
+        const workbook = new ExcelJS.Workbook();
+        const wsColab = workbook.addWorksheet('Colaboradores');
+
+        wsColab.columns = [
+            { header: 'Número',             key: 'numero',            width: 12 },
+            { header: 'Nome',               key: 'nome',              width: 35 },
+            { header: 'Data Admissão',      key: 'dataAdmissao',      width: 15, style: { numFmt: 'dd/mm/yyyy' } },
+            { header: 'Email',              key: 'email',             width: 30 },
+            { header: 'Categoria',          key: 'categoria',         width: 25 },
+            { header: 'Função',             key: 'funcao',            width: 25 },
+            { header: 'Regime',             key: 'regime',            width: 20 },
+            { header: 'Carga Horária',      key: 'cargaHoraria',      width: 14 },
+            { header: 'Nível Qualificação', key: 'nivelQualificacao', width: 25 },
+            { header: 'Área de Formação',   key: 'areaFormacao',      width: 30 },
+            { header: 'Outras Formações',   key: 'outrasFormacoes',   width: 35 },
+            { header: 'Áreas (Sigla)',      key: 'areasSigla',        width: 20 },
+            { header: 'Áreas (Nome)',       key: 'areasNome',         width: 40 }
+        ];
+
+        rows.forEach(colab => {
+            let dataAdmissao = null;
+            if (colab.dataAdmissao) {
+                const d = new Date(colab.dataAdmissao);
+                dataAdmissao = isNaN(d) ? null : d;
+            }
+
+            wsColab.addRow({
+                numero: colab.numero,
+                nome: colab.nome,
+                dataAdmissao,
+                email: colab.email,
+                categoria: colab.categoria,
+                funcao: colab.funcao,
+                regime: colab.regime,
+                cargaHoraria: colab.cargaHoraria,
+                nivelQualificacao: colab.nivelQualificacao,
+                areaFormacao: colab.areaFormacao,
+                outrasFormacoes: colab.outrasFormacoes,
+                areasSigla: colab.areasSigla || '',
+                areasNome: colab.areasNome || ''
+            });
+        });
+
+        // Formatação da folha
+        const header = wsColab.getRow(1);
+        header.font = { bold: true };
+        header.alignment = { vertical: 'middle', horizontal: 'center' };
+
+        wsColab.views = [{ state: 'frozen', ySplit: 1 }];
+
+        wsColab.autoFilter = {
+            from: { row: 1, column: 1 },
+            to: { row: 1, column: wsColab.columnCount }
+        };
+
+        // Resposta HTTP
+        const buffer = await workbook.xlsx.writeBuffer();
+
+        res.status(200);
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        res.setHeader('Content-Disposition', 'attachment; filename="FichaColaboradores_Completa.xlsx"');
+        res.setHeader('Content-Length', buffer.length);
+
+        res.end(buffer);
+
+    } catch (error) {
+        console.error('Erro ao gerar Excel de colaboradores:', error);
+        if (!res.headersSent) {
+            res.status(500).send('Erro ao gerar o ficheiro Excel.');
+        }
+    }
+});
 
 function isLoggedIn(req, res, next){
 	if(req.session.user){
